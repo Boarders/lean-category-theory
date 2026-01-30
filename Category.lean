@@ -59,21 +59,21 @@ infixr:80 " ≫ " => DeductiveSystem.comp
 /-!
 ### Category
 
-A category is a category structure satisfying three axioms:
+A category is a Deductive structure satisfying three axioms:
 identity laws and associativity.
 -/
 
 /--
 The typeclass `Category C` describes morphisms associated to objects of type `C`.
-The universe levels of the objects and morphisms are unconstrained, and will need to be
-specified explicitly, as `Category.{v} C`.
+The universe levels of the objects and morphisms are unconstrained, and will often need
+ to be specified explicitly, as `Category.{v} C`.
 -/
 class Category (obj : Type u) : Type max u (v + 1) extends DeductiveSystem.{v} obj where
-  /-- Identity morphisms are left identities for composition -/
+  /-- left identity for composition -/
   id_comp : ∀ {X Y : obj} (f : X ⟶ Y), 𝟙 X ≫ f = f
-  /-- Identity morphisms are right identities for composition -/
+  /-- right identity for composition -/
   comp_id : ∀ {X Y : obj} (f : X ⟶ Y), f ≫ 𝟙 Y = f
-  /-- Composition in a category is associative -/
+  /-- Composition is associative -/
   assoc : ∀ {W X Y Z : obj} (f : W ⟶ X) (g : X ⟶ Y) (h : Y ⟶ Z),
     (f ≫ g) ≫ h = f ≫ (g ≫ h)
 
