@@ -161,6 +161,10 @@ instance (P : Type u) [Preorder P] : DeductiveSystem (Pre P) where
     simp [Quiver.Hom]
     apply le_trans e1 e2
 
+/--
+As a preorder has at most one morphism between any two objects
+all equations are automatically satisfied
+-/
 instance (P : Type u) [Preorder P] : Category (Pre P) where
   id_comp := by
     intros p q p_le_q
