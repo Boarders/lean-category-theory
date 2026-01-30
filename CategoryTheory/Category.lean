@@ -1,6 +1,3 @@
-/-
-Formalization of Category Theory following Awodey's book
--/
 import Mathlib.Algebra.Group.Defs
 import Mathlib.Algebra.Group.Basic
 import Mathlib.Order.Basic
