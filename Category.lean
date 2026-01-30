@@ -143,8 +143,8 @@ instance (M : Type u) [Monoid M] : Category (B M) where
     exact mul_assoc m n p
 
 /--
-Preorder: Given a preorder P, we have an associated category with one object we denote by
-B p (the 'delooping' of M)
+Preorder: Given a preorder P, we have an associated category with objects the same
+as P and a morphism from p to q if p ≤ q
 -/
 
 structure Pre (P : Type u) : Type u where
