@@ -3,6 +3,7 @@ Formalization of Category Theory following Awodey's book
 -/
 import Mathlib.Algebra.Group.Defs
 import Mathlib.Algebra.Group.Basic
+import Mathlib.Order.Basic
 /-!
 # Categories
 
@@ -36,7 +37,7 @@ A quiver is a directed graph, providing the basic structure of objects and morph
 /-- A quiver is just a type with a Hom relation between objects -/
 class Quiver (obj : Type u) : Type max u (v + 1) where
   /-- The type of morphisms from one object to another -/
-  Hom : obj → obj → Type v
+  Hom : obj → obj → Sort v
 
 /-- Notation for morphisms between objects -/
 infixr:10 " ⟶ " => Quiver.Hom
@@ -120,7 +121,7 @@ instance : Category (Type u) where
 
 /--
 Monoids: Given a monoid M, we have an associated one object category which we denote by
-B M (the 'unlooping' of M)
+B M (the 'delooping' of M)
 -/
 
 structure B (M : Type u) : Type u
@@ -144,5 +145,37 @@ instance (M : Type u) [Monoid M] : Category (B M) where
   assoc := by
     intro _X _Y _Z _W m n p
     exact mul_assoc m n p
+
+/--
+Preorder: Given a preorder P, we have an associated category with one object we denote by
+B p (the 'delooping' of M)
+-/
+
+structure Pre (P : Type u) : Type u where
+  el : P
+
+instance (P : Type u) [Preorder P] : Quiver (Pre P) where
+  Hom p q := p.el ≤ q.el
+
+instance (P : Type u) [Preorder P] : DeductiveSystem (Pre P) where
+  id p := by
+    simp [Quiver.Hom]
+
+  comp e1 e2 := by
+    simp [Quiver.Hom]
+    apply le_trans e1 e2
+
+instance (P : Type u) [Preorder P] : Category (Pre P) where
+  id_comp := by
+    intros p q p_le_q
+    rfl
+
+  comp_id := by
+    intros p q p_le_q
+    rfl
+
+  assoc := by
+    intros p q r s pq qr rs
+    rfl
 
 end Cat
