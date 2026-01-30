@@ -10,16 +10,12 @@ import Mathlib.Order.Basic
 This file contains a level polymorphic definition of categories,
 based on the definition in mathlib's CategoryTheory library.
 
-The definitions are inlined here (not imported) so that theorems and
-results can be proven as exercises.
-
 ## Universe levels
 
 Following mathlib's convention, we use two universe levels:
 - `u` for the objects
 - `v` for the morphisms
 
-This allows for flexibility in modeling categories of different sizes.
 -/
 
 universe v u
