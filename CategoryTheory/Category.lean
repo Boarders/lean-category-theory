@@ -182,6 +182,9 @@ instance (P : Type u) [Preorder P] : Category (Pre P) where
 /--
 Discrete Cat: Given a Set (really type) X, we have an associated discrete category
 with only identity homs
+
+Note: For the hom types we use the equality type which may have many distinct proofs
+that x = x depending on the ambient type theory
 -/
 structure Disc(X : Type u) : Type u where
   el : X
@@ -197,10 +200,6 @@ instance (X : Type u) : DeductiveSystem (Disc X) where
     rw [e1, e2]
     rfl
 
-/--
-As a preorder has at most one morphism between any two objects
-all equations are automatically satisfied
--/
 instance (X : Type u) : Category (Disc X) where
   id_comp := by
     intros p q eq
