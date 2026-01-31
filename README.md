@@ -5,5 +5,5 @@ Being a lean deveopment to follow along to Awodey's [Category Theory book](https
 ## Build
 
 ```
-lake build
+lake build CategoryTheory
 ```
