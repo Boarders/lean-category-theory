@@ -33,7 +33,7 @@ class Quiver (obj : Type u) : Type max u (v + 1) where
   Hom : obj → obj → Sort v
 
 /-- Notation for morphisms between objects -/
-infixr:10 " ⟶ " => Quiver.Hom
+infixr:10 "⟶ " => Quiver.Hom
 
 /-!
 ### Deductive System
