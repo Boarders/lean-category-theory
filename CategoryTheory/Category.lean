@@ -19,8 +19,6 @@ universe v u
 
 namespace Cat
 
-
-
 /-!
 ### Quiver
 
@@ -32,8 +30,10 @@ class Quiver (obj : Type u) : Type max u (v + 1) where
   /-- The type of morphisms from one object to another -/
   Hom : obj → obj → Sort v
 
+open Cat.Quiver
+
 /-- Notation for morphisms between objects -/
-infixr:10 "⟶ " => Quiver.Hom
+infixr:50 " ⇒ " => Hom
 
 /-!
 ### Deductive System
@@ -45,7 +45,7 @@ class DeductiveSystem (obj : Type u) : Type max u (v + 1) extends Quiver.{v} obj
   /-- The identity morphism on an object -/
   id : ∀ X : obj, Hom X X
   /-- Composition of morphisms in a category, written `f ≫ g` -/
-  comp : ∀ {X Y Z : obj}, (X ⟶ Y) → (Y ⟶ Z) → (X ⟶ Z)
+  comp : ∀ {X Y Z : obj}, (Hom X Y) → (Hom Y Z) → (Hom X Z)
 
 /-- Notation for the identity morphism in a category -/
 notation "𝟙" => DeductiveSystem.id
@@ -67,11 +67,11 @@ The universe levels of the objects and morphisms are unconstrained, and will oft
 -/
 class Category (obj : Type u) : Type max u (v + 1) extends DeductiveSystem.{v} obj where
   /-- left identity for composition -/
-  id_comp : ∀ {X Y : obj} (f : X ⟶ Y), 𝟙 X ≫ f = f
+  id_comp : ∀ {X Y : obj} (f : Hom X Y), 𝟙 X ≫ f = f
   /-- right identity for composition -/
-  comp_id : ∀ {X Y : obj} (f : X ⟶ Y), f ≫ 𝟙 Y = f
+  comp_id : ∀ {X Y : obj} (f : Hom X Y), f ≫ 𝟙 Y = f
   /-- Composition is associative -/
-  assoc : ∀ {W X Y Z : obj} (f : W ⟶ X) (g : X ⟶ Y) (h : Y ⟶ Z),
+  assoc : ∀ {W X Y Z : obj} (f : W ⇒ X) (g : X ⇒ Y) (h : Y ⇒ Z),
     (f ≫ g) ≫ h = f ≫ (g ≫ h)
 
 /-!
@@ -173,6 +173,41 @@ instance (P : Type u) [Preorder P] : Category (Pre P) where
 
   assoc := by
     intros p q r s pq qr rs
+    rfl
+
+/--
+Discrete Cat: Given a Set (really type) X, we have an associated discrete category
+with only identity homs
+-/
+structure Disc(X : Type u) : Type u where
+  el : X
+
+instance (X : Type u) : Quiver (Disc X) where
+  Hom p q := p = q
+
+instance (X : Type u) : DeductiveSystem (Disc X) where
+  id X := by
+    rfl
+
+  comp e1 e2 := by
+    rw [e1, e2]
+    rfl
+
+/--
+As a preorder has at most one morphism between any two objects
+all equations are automatically satisfied
+-/
+instance (X : Type u) : Category (Disc X) where
+  id_comp := by
+    intros p q eq
+    rfl
+
+  comp_id := by
+    intros p q eq
+    rfl
+
+  assoc := by
+    intros p q r s e1 e2 e3
     rfl
 
 end Cat
