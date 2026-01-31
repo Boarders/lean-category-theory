@@ -74,6 +74,10 @@ class Category (obj : Type u) : Type max u (v + 1) extends DeductiveSystem.{v} o
   assoc : ∀ {W X Y Z : obj} (f : W ⇒ X) (g : X ⇒ Y) (h : Y ⇒ Z),
     (f ≫ g) ≫ h = f ≫ (g ≫ h)
 
+attribute [simp] Category.id_comp
+attribute [simp] Category.comp_id
+attribute [simp] Category.assoc
+
 /-!
 ### Common category sizes
 -/
