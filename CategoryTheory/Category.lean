@@ -1,6 +1,7 @@
 import Mathlib.Algebra.Group.Defs
 import Mathlib.Algebra.Group.Basic
 import Mathlib.Order.Basic
+import Mathlib.Algebra.Group.Hom.Defs
 /-!
 # Categories
 
@@ -115,6 +116,37 @@ instance : Category (Type u) where
   assoc := by
     intro X Y Z W f g h
     rfl
+
+/--
+Structured sets (Monoids): Any algebraic theory forms a category with:
+  · Obj: Algebraic objects
+  · Mor: homomorphisms
+
+We show this in the case of the category of monoids
+-/
+
+structure Mon where
+  (α : Type u)
+  str: Monoid α
+
+instance (M : Mon) : Monoid M.α := M.str
+
+instance : Quiver Mon where
+  Hom M N := MonoidHom M.α N.α
+
+
+-- In order to show that Mon is a DeductiveSystem, we need to show
+-- the identity is a monoid hom and the composition of two monoid homs
+-- is a monoid hom
+def id_hom (M : Type u) [Monoid M] : MonoidHom M M := by
+  refine {toFun := ?_, map_one' := ?_, map_mul' := ?_}
+  · exact id
+  · simp
+  · simp
+
+instance : DeductiveSystem Mon where
+  id := sorry
+  comp := sorry
 
 /--
 Monoids: Given a monoid M, we have an associated one object category which we denote by
