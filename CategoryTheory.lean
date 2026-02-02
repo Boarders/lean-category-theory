@@ -2,3 +2,5 @@ import CategoryTheory.Category
 import CategoryTheory.Functor
 import CategoryTheory.Morphisms
 import CategoryTheory.Constructions
+import CategoryTheory.Monoid
+import CategoryTheory.FreeCategory
