@@ -10,6 +10,32 @@ open DeductiveSystem
 open Category
 
 /--
+The opposite of a category C, written C^{op} is a category with
+the same objects and every arrow reversed:
+  Ob(C^op) = C
+  C^op(c₁, c₂) = Hom(c₂, c₁)
+-/
+structure Opposite (C : Type u) : Type u where
+  obj : C
+
+instance (C : Type u) [Quiver C] : Quiver (Opposite C) where
+  Hom c₁ c₂ := Hom c₂.obj c₁.obj
+
+instance (C : Type u) [DeductiveSystem C] : DeductiveSystem (Opposite C) where
+  id C := id C.obj
+  comp f g := comp g f
+
+instance (C : Type u) [Category C] : Category (Opposite C) where
+  id_comp _f := by
+    apply comp_id
+
+  comp_id _f := by
+    apply id_comp
+
+  assoc f g h := by
+    simp [DeductiveSystem.comp]
+
+/--
 The product of two categories is a product category where:
   Ob(C × D) = C₀ × D₀
   Hom(c₁ × d₁, c₂ × d₂) = Hom(c₁, c₂) × Hom(d₁, d₂)
