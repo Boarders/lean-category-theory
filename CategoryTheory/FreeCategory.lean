@@ -2,6 +2,7 @@ import Mathlib.Algebra.Group.Basic
 import Mathlib.Algebra.Group.Hom.Defs
 import Mathlib.Algebra.Group.Hom.Defs
 import CategoryTheory.Category
+import CategoryTheory.Functor
 
 universe v u
 namespace Cat
@@ -35,10 +36,10 @@ instance {Q : Type u} [Quiver Q] : DeductiveSystem (FreeCat Q) where
   comp := comp_free
 
 
-theorem id_comp {Q : Type u} [Quiver Q] {q₁ q₂ : Q} (p : Path q₁ q₂) : comp_free id_free p = p := by
+@[simp] theorem id_comp {Q : Type u} [Quiver Q] {q₁ q₂ : Q} (p : Path q₁ q₂) : comp_free id_free p = p := by
   rfl
 
-theorem comp_id {Q : Type u} [Quiver Q] {q₁ q₂ : Q} (p : Path q₁ q₂) : comp_free p id_free = p := by
+@[simp] theorem comp_id {Q : Type u} [Quiver Q] {q₁ q₂ : Q} (p : Path q₁ q₂) : comp_free p id_free = p := by
   induction p with
   | nil => rfl
   | cons x xs IH =>
@@ -57,3 +58,34 @@ instance {Q : Type u} [Quiver Q] : Category (FreeCat Q) where
   id_comp := id_comp
   comp_id := comp_id
   assoc := comp_assoc
+
+open QuiverHom
+open Functor
+
+def fold_path {Q : Type u₁} [Quiver.{v₁} Q] {D : Type u₂} [Category.{v₂} D]
+    (M : QuiverHom Q D) {q₁ q₂ : Q} : Path q₁ q₂ → Hom (M.F₀ q₁) (M.F₀ q₂)
+  | Path.nil => 𝟙 (M.F₀ _)
+  | Path.cons p ps => M.F₁ p ≫ fold_path M ps
+
+theorem fold_path_functoriality  {Q : Type u₁} [Quiver.{v₁} Q] {D : Type u₂} [Category.{v₂} D]
+    (M : QuiverHom Q D) {q₁ q₂ q₃ : Q} (p₁ : Path q₁ q₂) (p₂ : Path q₂ q₃) :
+  fold_path M (comp_free p₁ p₂) = fold_path M p₁ ≫ fold_path M p₂ := by
+  induction p₁ with
+  | nil =>
+      simp [comp_free, fold_path]
+  | cons p ps IH =>
+      simp [comp_free, fold_path]
+      rw [IH]
+
+
+def fold_free_cat {Q : Type u₁} [Quiver.{v₁} Q] {D : Type u₂} [Category.{v₂} D] (M : QuiverHom Q D) : Functor (FreeCat Q) D := by
+  refine {F₀ := ?_, F₁ := ?_, F_id := ?_, F_comp := ?_ }
+  · intro q
+    exact M.F₀ q.obj
+  · intro q₁ q₂ p
+    exact fold_path M p
+  · intro c
+    rfl
+  · intro q₁ q₂ q₃ q₁q₂ q₂q₃
+    apply fold_path_functoriality
+end Cat
