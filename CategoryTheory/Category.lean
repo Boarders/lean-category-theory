@@ -118,6 +118,79 @@ instance : Category (Type u) where
     rfl
 
 /--
+Set: The category of types and functions (analogous to the category Set bounded by a
+universe size)
+-/
+structure Rel : Type (u + 1) where
+  obj : Type u
+
+instance : Quiver Rel.{u} where
+  Hom x y := x.obj -> y.obj -> Prop
+
+instance : DeductiveSystem Rel.{u} where
+  id _X x y := x = y
+  comp f g x z := ∃ y , f x y ∧ g y z
+
+theorem rel_assoc {X Y : Type u}
+  (f : W → X → Prop)(g : X → Y → Prop)(h : Y → Z → Prop)
+  (w : W) (z : Z) :
+  (∃ (y' : Y), (∃ (x' : X), f w x' ∧ g x' y') ∧ h y' z) ↔ ∃ (x' : X), f w x' ∧ ∃ (y' : Y), g x' y' ∧ h y' z := by
+  constructor
+  · intro lhs
+    rcases lhs with ⟨y' , ⟨inner, hyz⟩⟩
+    rcases inner with ⟨x', fwx_gxy⟩
+    refine ⟨x', ?_⟩
+    · constructor
+      · apply And.left
+        exact fwx_gxy
+      · refine ⟨y', ?_⟩
+        constructor
+        · apply And.right
+          exact fwx_gxy
+        · exact hyz
+  · intro rhs
+    rcases rhs with ⟨x' , ⟨fwx, inner⟩⟩
+    rcases inner with ⟨y', gxy_hyz⟩
+    refine ⟨y', ?_⟩
+    · constructor
+      · refine ⟨x', ?_⟩
+        constructor
+        · exact fwx
+        · apply And.left
+          exact gxy_hyz
+      · apply And.right
+        exact gxy_hyz
+
+instance : Category (Rel.{u}) where
+  id_comp := by
+    intro X Y f
+    simp [DeductiveSystem.comp]
+    apply funext
+    intro x
+    apply funext
+    intro y
+    simp [DeductiveSystem.id]
+
+  comp_id := by
+    intro X Y f
+    simp [DeductiveSystem.comp]
+    apply funext
+    intro x
+    apply funext
+    intro y
+    simp [DeductiveSystem.id]
+
+  assoc := by
+    intro W X Y Z f g h
+    simp [DeductiveSystem.comp]
+    apply funext
+    intro w
+    apply funext
+    intro z
+    simp
+    apply rel_assoc f g h w z
+
+/--
 Structured sets (Monoids): Any algebraic theory forms a category with:
   · Obj: Algebraic objects
   · Mor: homomorphisms
