@@ -217,9 +217,41 @@ def id_hom (M : Type u) [Monoid M] : MonoidHom M M := by
   · simp
   · simp
 
+def comp_hom {M N P : Type u} [Monoid M][Monoid N][Monoid P]
+  (f : MonoidHom M N)(g : MonoidHom N P) : MonoidHom M P  := by
+  refine {toFun := ?_, map_one' := ?_, map_mul' := ?_}
+  · intro m
+    apply g.toFun
+    apply f.toFun
+    exact m
+  · simp
+  · simp
+
 instance : DeductiveSystem Mon where
-  id := sorry
-  comp := sorry
+  id M := by
+    simp [Quiver.Hom]
+    apply id_hom
+
+  comp := comp_hom
+
+instance : Category Mon where
+  id_comp := by
+    intro M N f
+    simp [DeductiveSystem.comp, comp_hom]
+    apply MonoidHom.ext
+    intro m
+    simp [DeductiveSystem.id, id_hom]
+
+  comp_id := by
+    intro M N f
+    simp [DeductiveSystem.comp, comp_hom]
+    apply MonoidHom.ext
+    intro m
+    simp [DeductiveSystem.id, id_hom]
+
+  assoc := by
+    intro M N P f g h
+    simp [DeductiveSystem.comp, comp_hom]
 
 /--
 Monoids: Given a monoid M, we have an associated one object category which we denote by
