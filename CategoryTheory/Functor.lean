@@ -18,6 +18,31 @@ structure Functor (C : Type u₁) [Category C] (D : Type u₂) [Category D]
   F_comp : ∀ {a b c : C} (f : Hom a b) (g : Hom b c),
     F₁ (f ≫ g) = F₁ f ≫ F₁ g
 
+-- Note: If we want an extentionality lemma for proving equality of
+-- functors, then we need to use HEq to compare the equality of the
+-- hom types:
+--   D(F₀ c, F₀ c') with D(G₀ c, G₀ c')
+-- They are the same if have an equality of the functor on morphisms,
+-- but we don't know this when passing this arg to ext
+@[ext]
+theorem Functor.ext {C D : Type u} [Category C][Category D] {F G : Functor C D}
+      (h₀ : F.F₀ = G.F₀)
+      (h₁ : @HEq (∀ {c₁ c₂ : C}, Hom c₁ c₂ → Hom (F.F₀ c₁) (F.F₀ c₂))
+                  F.F₁
+                  (∀ {c₁ c₂ : C}, Hom c₁ c₂ → Hom (G.F₀ c₁) (G.F₀ c₂))
+                  G.F₁)
+      : F = G := by
+  cases F with
+  | mk qhF fidF fcompF =>
+    cases G with
+    | mk qhG fidG fcompG =>
+      congr
+      cases qhF with
+      | mk F₀ F₁ =>
+        cases qhG with
+        | mk G₀ G₀ =>
+          congr
+
 /-!
 ### The identity functor
 
@@ -55,7 +80,7 @@ def Comp_Hom {Q₁ Q₂ Q₃ : Type u} [Quiver Q₁] [Quiver Q₂] [Quiver Q₃]
     F₁ := G.F₁ ∘ F.F₁
   }
 
-def Comp_Functor (C D E : Type u) [Category C] [Category D] [Category E] (F : Functor C D) (G : Functor D E) : Functor C E :=
+def Comp_Functor {C D E : Type u} [Category C] [Category D] [Category E] (F : Functor C D) (G : Functor D E) : Functor C E :=
   { Comp_Hom F.toQuiverHom G.toQuiverHom with
     F_id := by
       intro c
