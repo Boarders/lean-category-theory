@@ -8,7 +8,6 @@ open Quiver
 open DeductiveSystem
 open Category
 
-
 structure IsIso {C : Type u} [Category C] {a b : C} (f : Hom a b) where
   inv : Hom b a
   -- Note: Because we use diagrammatic order, these are the opposite
@@ -29,3 +28,10 @@ theorem uniq_inv
   rw [h₁]
   rw [<- assoc, l_inv]
   simp
+
+
+structure IsMono {C : Type u} [Category C] {b c : C} (i : Hom b c) where
+  post_cancel : ∀ {a : C} , (e e' : Hom a b) → e ≫ i = e' ≫ i → e = e'
+
+structure IsEpi {C : Type u} [Category C] {b c : C} (s : Hom b c) where
+  pre_cancel : ∀ {d : C} , (f f' : Hom c d) → s ≫ f = s ≫ f' → s = s'
