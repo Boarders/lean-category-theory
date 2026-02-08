@@ -127,7 +127,7 @@ structure Rel : Type (u + 1) where
 instance : Quiver Rel.{u} where
   Hom x y := x.obj -> y.obj -> Prop
 
-instance : DeductiveSystem Rel.{u} where
+instance RelDeductiveSystem : DeductiveSystem Rel.{u} where
   id _X x y := x = y
   comp f g x z := ∃ y , f x y ∧ g y z
 
@@ -161,7 +161,7 @@ theorem rel_assoc {X Y : Type u}
       · apply And.right
         exact gxy_hyz
 
-instance : Category (Rel.{u}) where
+instance RelCategory : Category (Rel.{u}) where
   id_comp := by
     intro X Y f
     simp [DeductiveSystem.comp]
