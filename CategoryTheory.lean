@@ -5,3 +5,4 @@ import CategoryTheory.Morphisms
 import CategoryTheory.Constructions
 import CategoryTheory.Monoid
 import CategoryTheory.FreeCategory
+import CategoryTheory.InitialObject
