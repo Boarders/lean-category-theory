@@ -35,3 +35,40 @@ structure IsMono {C : Type u} [Category C] {b c : C} (i : Hom b c) where
 
 structure IsEpi {C : Type u} [Category C] {b c : C} (s : Hom b c) where
   pre_cancel : ∀ {d : C} , (f f' : Hom c d) → s ≫ f = s ≫ f' → s = s'
+
+/--
+Proof that the composition of two monos is a mono
+-/
+theorem comp_mono {C : Type u} [Category C] {a b c : C}
+    (i₁ : Hom a b) (i₂ : Hom b c)
+    (i₁_mono : IsMono i₁)(i₂_mono : IsMono i₂) :
+  IsMono (i₁ ≫ i₂) := by
+  refine {post_cancel := ?_}
+  · intro c x x' eq
+    rw [<- Category.assoc, <- Category.assoc] at eq
+    have cancel_i₂ : x ≫ i₁ = x' ≫ i₁ := by
+      apply i₂_mono.post_cancel (x ≫ i₁) (x' ≫ i₁) eq
+
+    have cancel_i₁ : x = x' := by
+      apply i₁_mono.post_cancel x x' cancel_i₂
+
+    exact cancel_i₁
+
+/--
+Proof that if i₁ ≫ i₂ is mono, then i₁ is mono
+-/
+theorem post_comp_mono {C : Type u} [Category C] {a b c : C}
+    (i₁ : Hom a b) (i₂ : Hom b c)
+    (i₁i₂_mono : IsMono (i₁ ≫ i₂)) :
+  IsMono i₁ := by
+  refine {post_cancel := ?_}
+  · intro c x x' eq
+
+    have add_i₂ : x ≫ i₁ ≫ i₂ = x' ≫ i₁ ≫ i₂ := by
+      rw [<- Category.assoc, <- Category.assoc]
+      rw [eq]
+
+    have cancel_i₁i₂ : x = x' := by
+      apply i₁i₂_mono.post_cancel x x' add_i₂
+
+    exact cancel_i₁i₂
