@@ -20,9 +20,12 @@ lemma init_endo_id [Category.{v} C] {init : C}
   f = g := by
   rw [<- is_init.uniq_init f, is_init.uniq_init g]
 
-def InitialIso {C : Type u}[Category.{v} C] (init₁ init₂ : C)
+/--
+Show that an initial object in a category is unqiue up to unique isomorphism
+ -/
+def InitialUnique {C : Type u}[Category.{v} C] (init₁ init₂ : C)
   (is_init₁ : IsInitial init₁) (is_init₂ : IsInitial init₂) :
-  Σ' (f : Hom init₁ init₂) , IsIso f :=  by
+  Σ' (f : Hom init₁ init₂) , IsIso f ×' (∀ (g : Hom init₁ init₂) , g = f) :=  by
   have i₁_i₂ : Hom init₁ init₂ := is_init₁.from_init init₂
   have i₂_i₁ : Hom init₂ init₁ := is_init₂.from_init init₁
   have i₁_roundtrip : i₁_i₂ ≫ i₂_i₁ = (𝟙 init₁) := by
@@ -30,7 +33,10 @@ def InitialIso {C : Type u}[Category.{v} C] (init₁ init₂ : C)
   have i₂_roundtrip : i₂_i₁ ≫ i₁_i₂ = (𝟙 init₂) := by
     apply init_endo_id is_init₂
   exists i₁_i₂
-  · refine {inv := ?_, l_inv := ?_, r_inv := ?_}
-    · exact i₂_i₁
-    . exact i₂_roundtrip
-    . exact i₁_roundtrip
+  · constructor
+    · refine {inv := ?_, l_inv := ?_, r_inv := ?_}
+      · exact i₂_i₁
+      . exact i₂_roundtrip
+      . exact i₁_roundtrip
+    · intro g
+      rw [<- is_init₁.uniq_init g, <- is_init₁.uniq_init i₁_i₂]
