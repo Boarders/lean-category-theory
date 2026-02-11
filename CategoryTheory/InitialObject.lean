@@ -39,4 +39,7 @@ def InitialUnique {C : Type u}[Category.{v} C] (init₁ init₂ : C)
       . exact i₂_roundtrip
       . exact i₁_roundtrip
     · intro g
+      -- Show that:
+      --   g = i₁_i₂
+      -- by showing both are equal to ![i₁]
       rw [<- is_init₁.uniq_init g, <- is_init₁.uniq_init i₁_i₂]
