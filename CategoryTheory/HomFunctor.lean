@@ -13,6 +13,13 @@ def Representable {C : Type u} [Category C] (c : C) : ContravariantFunctor C (Ty
   refine {F₀ := ?_, F₁ := ?_, F_id := ?_, F_comp := ?_}
   · intro c'
     exact (Hom c' c)
-  · sorry
-  · sorry
-  · sorry
+  · intro c1 c2 f g
+    exact f ≫ g
+  · intro c
+    funext g
+    simp [id_comp]
+    rfl
+  · intro c d e f g
+    funext g
+    rw [assoc]
+    rfl
