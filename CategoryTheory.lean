@@ -6,3 +6,4 @@ import CategoryTheory.Constructions
 import CategoryTheory.Monoid
 import CategoryTheory.FreeCategory
 import CategoryTheory.InitialObject
+import CategoryTheory.ContravariantFunctor
