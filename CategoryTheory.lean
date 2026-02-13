@@ -1,9 +1,11 @@
 import CategoryTheory.Category
-import CategoryTheory.Functor
 import CategoryTheory.CAT
-import CategoryTheory.Morphisms
+import CategoryTheory.Commutative
 import CategoryTheory.Constructions
-import CategoryTheory.Monoid
 import CategoryTheory.FreeCategory
-import CategoryTheory.InitialObject
+import CategoryTheory.Functor
 import CategoryTheory.HomFunctor
+import CategoryTheory.InitialObject
+import CategoryTheory.Monoid
+import CategoryTheory.Morphisms
+import CategoryTheory.Pullback
