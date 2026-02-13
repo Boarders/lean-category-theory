@@ -34,7 +34,7 @@ def InitialUnique {C : Type u}[Category.{v} C] (init₁ init₂ : C)
     apply init_endo_id is_init₂
   exists i₁_i₂
   · constructor
-    · refine {inv := ?_, l_inv := ?_, r_inv := ?_}
+    · refine {inv := ?_, post_inv := ?_, pre_inv := ?_}
       · exact i₂_i₁
       . exact i₂_roundtrip
       . exact i₁_roundtrip
