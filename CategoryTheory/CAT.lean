@@ -142,7 +142,7 @@ def RelOpToRelFunctor : Functor (Opposite Rel.{u}) (Rel.{u}) := by
 
 
 def RelToRelOpIso : CategoryIso RelToRelOpFunctor := by
-  refine { inv := ?_, l_inv := ?_, r_inv := ?_}
+  refine { inv := ?_, pre_inv := ?_, post_inv := ?_}
   · exact RelOpToRelFunctor
   · apply Functor.ext
     · simp [RelToRelOpFunctor, RelOpToRelFunctor, DeductiveSystem.comp, Comp_Functor, Comp_Hom]
