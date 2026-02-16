@@ -1,5 +1,7 @@
 import CategoryTheory.Category
 import CategoryTheory.Commutative
+import CategoryTheory.Morphisms
+
 
 universe u₁ u₂ v₁ v₂ u v
 
@@ -58,3 +60,98 @@ def PBL_outer {C : Type u}{a b c d e f : C} [Category C]
         · intro Ta'
           simp
     exact Ta
+
+
+/--
+       T
+       ├───────┐
+       │       ↓
+       │   a → b → c
+       │   ↓   ↓   ↓
+       └───d → e → f
+
+If the outer square and the RHS are pullbacks then the LHS is a pullback
+-/
+def PBL_left {C : Type u}{a b c d e f : C} [Category C]
+  (ab : Hom a b) (bc : Hom b c)
+  (ad : Hom a d) (be : Hom b e) (cf : Hom c f)
+  (de : Hom d e) (ef : Hom e f)
+  (rhs_pullback : IsPullback ef cf b bc be)
+  (outer_pullback : IsPullback (de ≫ ef) cf a (ab ≫ bc) ad)
+  (lhs_commutes : CommutativeSquare ab be ad de)
+  :
+  IsPullback de be a ab ad := by
+  refine {commutes := ?_, mediating_morphism := ?_}
+  · exact lhs_commutes
+  · intro T Tb Td T_commSq
+    have Tb : ∃! (i : Hom T b) , i ≫ bc = Tb ≫ bc ∧ i ≫ be = Td ≫ de  := by
+      apply rhs_pullback.mediating_morphism
+      simp [CommutativeSquare]
+      -- need to show: Tb ≫ bc ≫ cf = Td ≫ de ≫ ef
+      have eq_1 : Tb ≫ bc ≫ cf = Tb ≫ be ≫ ef := by
+        rw [rhs_pullback.commutes]
+      have eq_2 : Tb ≫ be ≫ ef = Td ≫ de ≫ ef := by
+        rw [<- Category.assoc, <- Category.assoc]
+        rw [T_commSq]
+      trans Tb ≫ be ≫ ef
+      · exact eq_1
+      · exact eq_2
+    have map_to_a : ∃! (i : Hom T a) , i ≫ ab ≫ bc = Tb.fst ≫ bc ∧ i ≫ ad = Td  := by
+      apply outer_pullback.mediating_morphism
+      simp [CommutativeSquare]
+    have Ta : ∃! (i : Hom T a), i ≫ ab = Tb.fst ∧ i ≫ ad = Td  := by
+      cases map_to_a with
+      | intro i P =>
+        exists i
+        constructor
+        · simp
+        · intro Ta'
+          simp
+    exact Ta
+
+
+/--
+       a → b
+       ↓   ↓
+       c → d
+
+If bd is a mono then ac is a mono
+-/
+def mono_pullback {C : Type u}{a b c d : C} [Category C]
+  (ab : Hom a b) (ac : Hom a c)
+  (bd : Hom b d) (cd : Hom c d)
+  (is_pullback : IsPullback cd bd a ab ac)
+  (bd_mono : IsMono bd)
+  : IsMono ac := by
+  refine {post_cancel := ?_}
+  · intro e ea ea' eq_post
+    have eq₁ : ea ≫ ab ≫ bd = ea' ≫ ab ≫ bd := by
+      rw [is_pullback.commutes]
+      rw [<- Category.assoc, <- Category.assoc]
+      rw [eq_post]
+    have eq₂ : ea ≫ ab = ea' ≫ ab := by
+      apply bd_mono.post_cancel
+      rw [Category.assoc, Category.assoc]
+      exact eq₁
+    have uniq_ea : ∃! (i : Hom e a), i ≫ ab = ea ≫ ab ∧ i ≫ ac = ea ≫ ac  := by
+      apply is_pullback.mediating_morphism
+      · simp [CommutativeSquare]
+        rw [is_pullback.commutes]
+    have eq₃ : ea ≫ ac = ea' ≫ ac := by
+      exact eq_post
+    obtain ⟨witness_ea, ⟨witness_ab, witness_ac⟩, unique_ea⟩ := uniq_ea
+    have ab_eq_uniq : ea = witness_ea := by
+      apply unique_ea
+      -- prove that ea is also mediating
+      constructor
+      · rfl
+      · rfl
+    have ab'_eq_uniq : ea' = witness_ea := by
+      apply unique_ea
+      -- prove that ea' is also mediating
+      constructor
+      · rw [eq₂]
+      · rw [eq₃]
+    trans witness_ea
+    · exact ab_eq_uniq
+    · rw [ab'_eq_uniq]
