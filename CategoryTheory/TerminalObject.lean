@@ -1,0 +1,45 @@
+import CategoryTheory.Category
+import CategoryTheory.Functor
+import CategoryTheory.Morphisms
+
+universe u₁ u₂ v₁ v₂ u v
+
+namespace Cat
+open Quiver
+
+structure IsTerminal {C : Type u}[Category.{v} C] (term : C) : Type (max v u) where
+  to_term : ∀ (c : C) , Hom c term
+  uniq_term : ∀ {c : C} (f : Hom c term) , to_term c = f
+
+/-- Notation for the terminal object -/
+notation "!" => IsTerminal.to_term
+notation "!-uniq" => IsTerminal.uniq_term
+
+lemma term_endo_id [Category.{v} C] {term : C}
+  {f g : Hom term term} (is_terminal : IsTerminal term) :
+  f = g := by
+  rw [<- is_terminal.uniq_term f, is_terminal.uniq_term g]
+
+/--
+Show that an terminal object in a category is unqiue up to unique isomorphism
+ -/
+def TerminalUnique {C : Type u}[Category.{v} C] (term₁ term₂ : C)
+  (is_term₁ : IsTerminal term₁) (is_term₂ : IsTerminal term₂) :
+  Σ' (f : Hom term₁ term₂) , IsIso f ×' (∀ (g : Hom term₁ term₂) , g = f) :=  by
+  have i₁_i₂ : Hom term₁ term₂ := is_term₂.to_term term₁
+  have i₂_i₁ : Hom term₂ term₁ := is_term₁.to_term term₂
+  have i₁_roundtrip : i₁_i₂ ≫ i₂_i₁ = (𝟙 term₁) := by
+    apply term_endo_id is_term₁
+  have i₂_roundtrip : i₂_i₁ ≫ i₁_i₂ = (𝟙 term₂) := by
+    apply term_endo_id is_term₂
+  exists i₁_i₂
+  · constructor
+    · refine {inv := ?_, post_inv := ?_, pre_inv := ?_}
+      · exact i₂_i₁
+      . exact i₂_roundtrip
+      . exact i₁_roundtrip
+    · intro g
+      -- Show that:
+      --   g = i₁_i₂
+      -- by showing both are equal to ![i₁]
+      rw [<- is_term₂.uniq_term g, <- is_term₂.uniq_term i₁_i₂]
