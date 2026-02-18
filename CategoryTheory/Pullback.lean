@@ -16,6 +16,81 @@ structure IsPullback {C : Type u}[Category.{v} C] {b c d : C} (bottom : Hom c d)
     ∃! (i : Hom a obj) , i ≫ top = top' ∧ i ≫ left = left'
 
 /--
+       p'
+       ├───────┐
+       │ !≅↓   ↓
+       │   p → b
+       │   ↓   ↓
+       └───a → c
+
+If a and a' are both pullbacks then they are iso
+-/
+theorem PullbackUnique {C : Type u}[Category.{v} C] (p p' : C) (a b c : C)
+  (pa : Hom p a) (pb : Hom p b)
+  (pa' : Hom p' a) (pb' : Hom p' b)
+  (ac : Hom a c) (bc : Hom b c)
+  (is_pullback : IsPullback ac bc p pb pa)
+  (is_pullback' : IsPullback ac bc p' pb' pa') :
+  ∃ (f : Hom p' p), IsIso' f := by
+  have p_mediating : ∃! (i : Hom p' p) , i ≫ pb = pb' ∧ i ≫ pa = pa' := by
+    apply is_pullback.mediating_morphism
+    exact is_pullback'.commutes
+  have p'_mediating : ∃! (i : Hom p p') , i ≫ pb' = pb ∧ i ≫ pa' = pa := by
+    apply is_pullback'.mediating_morphism
+    exact is_pullback.commutes
+  have pp_mediating : ∃! (i : Hom p p) , i ≫ pb = pb ∧ i ≫ pa = pa := by
+    apply is_pullback.mediating_morphism
+    exact is_pullback.commutes
+  have p'p'_mediating : ∃! (i : Hom p' p') , i ≫ pb' = pb' ∧ i ≫ pa' = pa' := by
+    apply is_pullback'.mediating_morphism
+    exact is_pullback'.commutes
+  obtain ⟨f , ⟨f_pb, f_pa⟩, _f_uniq⟩ := p_mediating
+  obtain ⟨g , ⟨g_pb, g_pa⟩, _g_uniq⟩ := p'_mediating
+  obtain ⟨i , ⟨_i_pb, _i_pa⟩, i_uniq⟩ := pp_mediating
+  obtain ⟨i' , ⟨_i'_pb, _i'_pa⟩, i'_uniq⟩ := p'p'_mediating
+  exists f
+  simp [IsIso']
+  exists g
+  -- prove g is a two sided inverse
+  constructor
+  · trans i
+    · apply i_uniq
+      rw [Category.assoc, Category.assoc]
+      rw [f_pb, g_pb, f_pa, g_pa]
+      aesop
+    · symm
+      apply i_uniq
+      rw [Category.id_comp, Category.id_comp]
+      aesop
+  · trans i'
+    · apply i'_uniq
+      rw [Category.assoc, Category.assoc]
+      rw [g_pb, f_pb, g_pa, f_pa]
+      aesop
+    · symm
+      apply i'_uniq
+      rw [Category.id_comp, Category.id_comp]
+      aesop
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/--
        T
        ├───────────┐
        │           ↓
