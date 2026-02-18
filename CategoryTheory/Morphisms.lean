@@ -27,6 +27,12 @@ theorem uniq_inv
   rw [<- assoc, pre_inv]
   simp
 
+structure IsoPair {C : Type u} [Category C] {a b : C} (f : Hom a b) (g : Hom b a) : Prop where
+  pre_inv : g ≫ f = 𝟙 b
+  post_inv : f ≫ g = 𝟙 a
+
+def IsIso' {C : Type u} [Category C] {a b : C} (f : Hom a b) : Prop :=
+  ∃ (inv : Hom b a), inv ≫ f = 𝟙 b ∧ f ≫ inv = 𝟙 a
 
 structure IsMono {C : Type u} [Category C] {b c : C} (i : Hom b c) where
   post_cancel : ∀ {a : C} , (e e' : Hom a b) → e ≫ i = e' ≫ i → e = e'
