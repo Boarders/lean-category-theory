@@ -7,5 +7,6 @@ import CategoryTheory.Functor
 import CategoryTheory.HomFunctor
 import CategoryTheory.InitialObject
 import CategoryTheory.Monoid
+import CategoryTheory.Monos
 import CategoryTheory.Morphisms
 import CategoryTheory.Pullback
