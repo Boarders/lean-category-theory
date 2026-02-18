@@ -1,5 +1,6 @@
 import CategoryTheory.Category
 import CategoryTheory.Morphisms
+import CategoryTheory.Pullback
 import Mathlib.Data.Quot
 
 universe u₁ u₂ v₁ v₂ u v
@@ -73,4 +74,66 @@ def equivMonos {C : Type u} [Category C] (b : C) : Setoid (Monos b) where
 
 abbrev Sub {C : Type u} [Category C] (c : C) := Quotient (equivMonos c)
 
-def pullback_sub :
+/--
+     a₁ a₂ -------→ b₁ b₁
+   j₁ ↓≅↓ j₂     i₁ ↓≅↓ i₂
+       c-----f-----→ d
+-/
+def Sub_Hom {C : Type u} [Category C]
+  {c d : C} (mkPullback : HasPullbacks C) (f : Hom c d) : Sub d → Sub c :=
+  Quotient.lift
+    (fun m : Monos d => by
+      obtain ⟨j_src, ⟨jc, jd⟩, j_pullback⟩ := mkPullback f m.morphism
+      exact Quotient.mk (equivMonos c) ⟨j_src, jd, mono_pullback j_pullback m.is_mono⟩)
+        (by
+          intro m₁ m₂ eq_m₁m₂
+          -- Need to show:
+          --   if m₁ ≈ m₂, then the morphism
+          --   arising from mkPullback m₁ f is equiv to the morphism arising
+          --   from mkPullback m₂ f
+          cases m₁ with
+          | mk a₁ i₁ i₁_mono =>
+          cases m₂ with
+          | mk a₂ i₂ i₂_mono =>
+          cases eq_m₁m₂ with
+          | intro i₁i₂_part i₂i₁_part =>
+             simp at i₁i₂_part
+             simp at i₂i₁_part
+             obtain ⟨i₁i₂, i₁_is_part⟩ := i₁i₂_part.factors
+             obtain ⟨i₂i₁, i₂_is_part⟩ := i₂i₁_part.factors
+             simp
+             have equiv : IsEquiv (pullback_left mkPullback f i₁) (pullback_left mkPullback f i₂) := by
+               let j₁_src := pullback_obj mkPullback f i₁
+               let j₁b₁ := pullback_top mkPullback f i₁
+               let j₁c := pullback_left mkPullback f i₁
+               let j₁_pullback := pullback_proof mkPullback f i₁
+               let j₂_src := pullback_obj mkPullback f i₂
+               let j₂b₂ := pullback_top mkPullback f i₂
+               let j₂c := pullback_left mkPullback f i₂
+               let j₂_pullback := pullback_proof mkPullback f i₂
+               have j₁comm : CommutativeSquare (j₁b₁ ≫ i₁i₂) i₂ j₁c f := by
+                 simp [CommutativeSquare]
+                 rw [i₁_is_part]
+                 apply j₁_pullback.commutes
+               have j₂comm : CommutativeSquare (j₂b₂ ≫ i₂i₁) i₁ j₂c f := by
+                 simp [CommutativeSquare]
+                 rw [i₂_is_part]
+                 apply j₂_pullback.commutes
+               have j₁_mediate :
+                 ∃! (i : Hom j₁_src j₂_src) , i ≫ j₂b₂ = (j₁b₁ ≫ i₁i₂) ∧ i ≫ j₂c = j₁c := by
+                 apply j₂_pullback.mediating_morphism (j₁b₁ ≫ i₁i₂) j₁c j₁comm
+               have j₂_mediate :
+                 ∃! (i : Hom j₂_src j₁_src) , i ≫ j₁b₁ = (j₂b₂ ≫ i₂i₁) ∧ i ≫ j₁c = j₂c := by
+                 apply j₁_pullback.mediating_morphism (j₂b₂ ≫ i₂i₁) j₂c j₂comm
+               obtain ⟨j₁j₂ , ⟨j₁_j₂b₂, j₁_j₂c⟩, j₁_uniq⟩ := j₁_mediate
+               obtain ⟨j₂j₁ , ⟨j₂_j₁b₁, j₂_j₁c⟩, j₂_uniq⟩ := j₂_mediate
+               simp [IsEquiv]
+               constructor
+               · refine {factors := ?_}
+                 change ∃ i, i ≫ j₂c = j₁c
+                 exact ⟨j₁j₂, j₁_j₂c⟩
+               · refine {factors := ?_}
+                 change ∃ i, i ≫ j₁c = j₂c
+                 exact ⟨j₂j₁, j₂_j₁c⟩
+             exact Quotient.sound equiv
+        )
