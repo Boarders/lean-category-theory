@@ -2,18 +2,77 @@ import CategoryTheory.Category
 import CategoryTheory.Commutative
 import CategoryTheory.Morphisms
 
-
 universe u₁ u₂ v₁ v₂ u v
 
 namespace Cat
 open Quiver
+open DeductiveSystem
 
+/--
+       a → b
+       ↓   ↓
+       c → d
+-/
 structure IsPullback {C : Type u}[Category.{v} C] {b c d : C} (bottom : Hom c d) (right : Hom b d) (obj : C) (top : Hom obj b) (left : Hom obj c) : Type (max v u) where
   commutes : CommutativeSquare top right left bottom
   mediating_morphism : ∀ {a : C}
     (top' : Hom a b) (left' : Hom a c)
     (_commutes' : CommutativeSquare top' right left' bottom),
     ∃! (i : Hom a obj) , i ≫ top = top' ∧ i ≫ left = left'
+
+/--
+When we say a category has all pullbacks, we mean that there is some specific choice
+for each collection of morphisms. This is needed to define `Sub` as a functor
+without using choice.
+-/
+def HasPullbacks (C : Type u)[Category C] :=
+  ∀ {b c d : C} (cd : Hom c d) (bd : Hom b d),
+    Σ (a : C) , Σ (abac : Hom a b × Hom a c),
+      IsPullback cd bd a abac.fst abac.snd
+
+def pullback_obj {C : Type u}[Category C] (hp : HasPullbacks C)
+  {b c d : C} (cd : Hom c d) (bd : Hom b d) : C :=
+  (hp cd bd).fst
+
+def pullback_top {C : Type u}[Category C] (hp : HasPullbacks C)
+  {b c d : C} (cd : Hom c d) (bd : Hom b d) :
+  Hom (pullback_obj hp cd bd) b :=
+  (hp cd bd).snd.fst.fst
+
+def pullback_left {C : Type u}[Category C] (hp : HasPullbacks C)
+  {b c d : C} (cd : Hom c d) (bd : Hom b d) :
+  Hom (pullback_obj hp cd bd) c :=
+  (hp cd bd).snd.fst.snd
+
+def pullback_proof {C : Type u}[Category C] (hp : HasPullbacks C)
+  {b c d : C} (cd : Hom c d) (bd : Hom b d) :
+  IsPullback cd bd (pullback_obj hp cd bd)
+    (pullback_top hp cd bd) (pullback_left hp cd bd) :=
+  (hp cd bd).snd.snd
+
+theorem PullbackEndo {C : Type u}[Category.{v} C] (p : C) (a b c : C)
+  (pa : Hom p a) (pb : Hom p b)
+  (ac : Hom a c) (bc : Hom b c)
+  (is_pullback : IsPullback ac bc p pb pa)
+  (i : Hom p p)
+  (i_pa : i ≫ pa = pa)
+  (i_pb : i ≫ pb = pb) : i = 𝟙 p := by
+  -- take any mediating morphism for pb and pa
+  obtain ⟨j , ⟨j_pb, j_pa⟩, j_uniq⟩ :=
+    is_pullback.mediating_morphism pb pa is_pullback.commutes
+  -- show i mediates
+  have i_mediates : i = j := by
+    apply j_uniq
+    aesop
+  -- show id mediates
+  have id_mediates : (𝟙 p) = j := by
+    apply j_uniq
+    aesop
+  trans j
+  · exact i_mediates
+  · symm
+    exact id_mediates
+
 
 /--
        p'
@@ -193,8 +252,8 @@ def PBL_left {C : Type u}{a b c d e f : C} [Category C]
 If bd is a mono then ac is a mono
 -/
 def mono_pullback {C : Type u}{a b c d : C} [Category C]
-  (ab : Hom a b) (ac : Hom a c)
-  (bd : Hom b d) (cd : Hom c d)
+  {ab : Hom a b} {ac : Hom a c}
+  {bd : Hom b d} {cd : Hom c d}
   (is_pullback : IsPullback cd bd a ab ac)
   (bd_mono : IsMono bd)
   : IsMono ac := by
