@@ -79,11 +79,11 @@ abbrev Sub {C : Type u} [Category C] (c : C) := Quotient (equivMonos c)
    j₁ ↓≅↓ j₂     i₁ ↓≅↓ i₂
        c-----f-----→ d
 -/
-def Sub_Hom {C : Type u} [Category C]
-  {c d : C} (mkPullback : HasPullbacks C) (f : Hom c d) : Sub d → Sub c :=
+def Sub_Hom {C : Type u} [Category C] [HasPullbacks C]
+  {c d : C} (f : Hom c d) : Sub d → Sub c :=
   Quotient.lift
     (fun m : Monos d => by
-      obtain ⟨j_src, ⟨jc, jd⟩, j_pullback⟩ := mkPullback f m.morphism
+      obtain ⟨j_src, ⟨jc, jd⟩, j_pullback⟩ := HasPullbacks.mkPullback f m.morphism
       exact Quotient.mk (equivMonos c) ⟨j_src, jd, mono_pullback j_pullback m.is_mono⟩)
         (by
           intro m₁ m₂ eq_m₁m₂
@@ -102,15 +102,15 @@ def Sub_Hom {C : Type u} [Category C]
              obtain ⟨i₁i₂, i₁_is_part⟩ := i₁i₂_part.factors
              obtain ⟨i₂i₁, i₂_is_part⟩ := i₂i₁_part.factors
              simp
-             have equiv : IsEquiv (pullback_left mkPullback f i₁) (pullback_left mkPullback f i₂) := by
-               let j₁_src := pullback_obj mkPullback f i₁
-               let j₁b₁ := pullback_top mkPullback f i₁
-               let j₁c := pullback_left mkPullback f i₁
-               let j₁_pullback := pullback_proof mkPullback f i₁
-               let j₂_src := pullback_obj mkPullback f i₂
-               let j₂b₂ := pullback_top mkPullback f i₂
-               let j₂c := pullback_left mkPullback f i₂
-               let j₂_pullback := pullback_proof mkPullback f i₂
+             have equiv : IsEquiv (pullback_left f i₁) (pullback_left f i₂) := by
+               let j₁_src := pullback_obj f i₁
+               let j₁b₁ := pullback_top f i₁
+               let j₁c := pullback_left f i₁
+               let j₁_pullback := pullback_proof f i₁
+               let j₂_src := pullback_obj f i₂
+               let j₂b₂ := pullback_top f i₂
+               let j₂c := pullback_left f i₂
+               let j₂_pullback := pullback_proof f i₂
                have j₁comm : CommutativeSquare (j₁b₁ ≫ i₁i₂) i₂ j₁c f := by
                  simp [CommutativeSquare]
                  rw [i₁_is_part]
@@ -137,3 +137,106 @@ def Sub_Hom {C : Type u} [Category C]
                  exact ⟨j₂j₁, j₂_j₁c⟩
              exact Quotient.sound equiv
         )
+
+/--
+    b──𝟙b─→ b
+    │        │
+    f        f
+    ↓        ↓
+    c──𝟙c──→ c
+
+Any morphism f : b → c forms a pullback along 𝟙 c
+-/
+def id_pullback {C : Type u} [Category C] {b c : C} (f : Hom b c) :
+  IsPullback (𝟙 c) f b (𝟙 b) f := by
+  refine {commutes := ?_, mediating_morphism := ?_}
+  · simp [CommutativeSquare]
+  · intro a top left comm
+    simp [CommutativeSquare] at comm
+    exists top
+    simp
+    exact comm
+
+theorem pullback_id_equiv {C : Type u} [Category C] [HasPullbacks C]
+  {b c : C} (f : Hom b c) :
+  IsEquiv (pullback_left (𝟙 c) f) f := by
+  refine ⟨?_, ?_⟩
+  -- IsPart (pullback_left (𝟙 c) f) f
+  · refine {factors := ?_}
+    exists pullback_top (𝟙 c) f
+    -- pullback commutes giving
+    --   top ≫ f = left ≫ 𝟙 c = left
+    let top := pullback_top (𝟙 c) f
+    let left := pullback_left  (𝟙 c) f
+    have comm : CommutativeSquare _ _ _ _ := (pullback_proof (𝟙 c) f).commutes
+    simp [CommutativeSquare] at comm
+    exact comm
+  -- Direction 2: IsPart f (pullback_left (𝟙 c) f)
+  -- Use the mediating morphism from the universal property
+  · refine {factors := ?_}
+    have med := (pullback_proof (𝟙 c) f).mediating_morphism (𝟙 b) f (id_pullback f).commutes
+    obtain ⟨i, ⟨_, _⟩, _⟩ := med
+    exists i
+
+/--
+Given:
+   g : c → d,
+   h : d → e,
+   f : b → e,
+pulling back f along g ≫ h is equivalent (as a mono) to first pulling back f along h,
+then pulling back the result along g. This follows from the pullback lemma.
+-/
+theorem pullback_comp_equiv {C : Type u} [Category C] [HasPullbacks C]
+  {b c d e : C} (g : Hom c d) (h : Hom d e) (f : Hom b e) :
+  IsEquiv (pullback_left (g ≫ h) f) (pullback_left g (pullback_left h f)) := by
+  have comp_pb : IsPullback (g ≫ h) f
+      (pullback_obj g (pullback_left h f))
+      (pullback_top g (pullback_left h f) ≫ pullback_top h f)
+      (pullback_left g (pullback_left h f)) :=
+    PBL_outer
+      (pullback_top g (pullback_left h f))
+      (pullback_top h f)
+      (pullback_left g (pullback_left h f))
+      (pullback_left h f)
+      f g h
+      (pullback_proof h f)
+      (pullback_proof g (pullback_left h f))
+
+  let direct_pb := pullback_proof (g ≫ h) f
+  refine ⟨?_, ?_⟩
+  -- WTS: IsPart (pullback_left (g ≫ h) f) (pullback_left g (pullback_left h f))
+  · refine {factors := ?_}
+    have med := comp_pb.mediating_morphism
+      (pullback_top (g ≫ h) f)
+      (pullback_left (g ≫ h) f)
+      direct_pb.commutes
+    obtain ⟨i, ⟨_, i_left⟩, _⟩ := med
+    exact ⟨i, i_left⟩
+  -- WTS : IsPart (pullback_left g (pullback_left h f)) (pullback_left (g ≫ h) f)
+  · refine {factors := ?_}
+    have med := direct_pb.mediating_morphism
+      (pullback_top g (pullback_left h f) ≫ pullback_top h f)
+      (pullback_left g (pullback_left h f))
+      comp_pb.commutes
+    obtain ⟨i, ⟨_, i_left⟩, _⟩ := med
+    exact ⟨i, i_left⟩
+
+theorem Sub_Hom_id {C : Type u} [Category C] [HasPullbacks C]
+  {c : C} : Sub_Hom (𝟙 c) = id := by
+  funext sub_c
+  refine Quotient.inductionOn sub_c ?_
+  intros mono_c
+  cases mono_c with
+  | mk a i i_mono =>
+    simp [Sub_Hom]
+    exact Quotient.sound (pullback_id_equiv i)
+
+theorem Sub_Hom_comp {C : Type u} [Category C] [HasPullbacks C]
+  {c d e : C} (f : Hom c d) (g : Hom d e) : Sub_Hom (f ≫ g) = (Sub_Hom f ∘ Sub_Hom g) := by
+  funext sub_c
+  refine Quotient.inductionOn sub_c ?_
+  intros mono_c
+  cases mono_c with
+  | mk a i i_mono =>
+    simp [Sub_Hom]
+    exact Quotient.sound (pullback_comp_equiv f g i)
