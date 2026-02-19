@@ -1,4 +1,5 @@
 import CategoryTheory.Category
+import CategoryTheory.ContravariantFunctor
 import CategoryTheory.Morphisms
 import CategoryTheory.Pullback
 import Mathlib.Data.Quot
@@ -240,3 +241,12 @@ theorem Sub_Hom_comp {C : Type u} [Category C] [HasPullbacks C]
   | mk a i i_mono =>
     simp [Sub_Hom]
     exact Quotient.sound (pullback_comp_equiv f g i)
+
+def Sub_Functor {C : Type u} [Category.{v + 1} C] [HasPullbacks C]
+  : ContravariantFunctor C (Type (max u v)) := by
+  refine {F₀ := ?_, F₁ := ?_, F_id := ?_, F_comp := ?_}
+  · exact Sub
+  · intro c d f
+    exact Sub_Hom f
+  · exact Sub_Hom_id
+  · exact Sub_Hom_comp
