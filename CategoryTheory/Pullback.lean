@@ -13,12 +13,19 @@ open DeductiveSystem
        ↓   ↓
        c → d
 -/
-structure IsPullback {C : Type u}[Category.{v} C] {b c d : C} (bottom : Hom c d) (right : Hom b d) (obj : C) (top : Hom obj b) (left : Hom obj c) : Type (max v u) where
+structure IsPullback {C : Type u}[Category.{v} C] {b c d : C} (bottom : Hom c d) (right : Hom b d) (obj : C) (top : Hom obj b) (left : Hom obj c) : Prop where
   commutes : CommutativeSquare top right left bottom
   mediating_morphism : ∀ {a : C}
     (top' : Hom a b) (left' : Hom a c)
     (_commutes' : CommutativeSquare top' right left' bottom),
     ∃! (i : Hom a obj) , i ≫ top = top' ∧ i ≫ left = left'
+
+structure PullbackData {C : Type u} [Category C] {b c d : C}
+    (cd : Hom c d) (bd : Hom b d) where
+  obj : C
+  top : Hom obj b
+  left : Hom obj c
+  is_pullback : IsPullback cd bd obj top left
 
 /--
 When we say a category has all pullbacks, we mean that there is some specific choice
@@ -27,28 +34,27 @@ without using choice.
 -/
 class HasPullbacks (C : Type u)[Category C] where
   mkPullback : ∀ {b c d : C} (cd : Hom c d) (bd : Hom b d),
-    Σ (a : C) , Σ (abac : Hom a b × Hom a c),
-      IsPullback cd bd a abac.fst abac.snd
+    PullbackData cd bd
 
 def pullback_obj {C : Type u}[Category C] [hp : HasPullbacks C]
   {b c d : C} (cd : Hom c d) (bd : Hom b d) : C :=
-  (hp.mkPullback cd bd).fst
+  (hp.mkPullback cd bd).obj
 
 def pullback_top {C : Type u}[Category C] [hp : HasPullbacks C]
   {b c d : C} (cd : Hom c d) (bd : Hom b d) :
   Hom (pullback_obj cd bd) b :=
-  (hp.mkPullback cd bd).snd.fst.fst
+  (hp.mkPullback cd bd).top
 
 def pullback_left {C : Type u}[Category C] [hp : HasPullbacks C]
   {b c d : C} (cd : Hom c d) (bd : Hom b d) :
   Hom (pullback_obj cd bd) c :=
-  (hp.mkPullback cd bd).snd.fst.snd
+  (hp.mkPullback cd bd).left
 
 def pullback_proof {C : Type u}[Category C] [hp : HasPullbacks C]
   {b c d : C} (cd : Hom c d) (bd : Hom b d) :
   IsPullback cd bd (pullback_obj cd bd)
     (pullback_top cd bd) (pullback_left cd bd) :=
-  (hp.mkPullback cd bd).snd.snd
+  (hp.mkPullback cd bd).is_pullback
 
 theorem PullbackEndo {C : Type u}[Category.{v} C] (p : C) (a b c : C)
   (pa : Hom p a) (pb : Hom p b)
@@ -141,7 +147,7 @@ theorem PullbackUnique {C : Type u}[Category.{v} C] (p p' : C) (a b c : C)
 
 If the LHS and the RHS are pullbacks then the overall square is a pullback
 -/
-def PBL_outer {C : Type u}{a b c d e f : C} [Category.{v} C]
+theorem PBL_outer {C : Type u}{a b c d e f : C} [Category C]
   (ab : Hom a b) (bc : Hom b c)
   (ad : Hom a d) (be : Hom b e) (cf : Hom c f)
   (de : Hom d e) (ef : Hom e f)
@@ -159,12 +165,16 @@ def PBL_outer {C : Type u}{a b c d e f : C} [Category.{v} C]
     trans (ab ≫ be ≫ ef)
     · exact eq_1
     · exact eq_2
+    -- need to show: Given a commutative square, there is a unique map to a
+    -- that mediates it
   · intro T Tc Td T_commSq
+    -- first gt a map to b via b's pullback property
     have Tb : ∃! (i : Hom T b) , i ≫ bc = Tc ∧ i ≫ be = Td ≫ de  := by
       apply rhs_pullback.mediating_morphism
       simp [CommutativeSquare]
       rw [T_commSq]
     obtain ⟨tb, ⟨tb_bc, tb_be⟩, tb_uniq⟩ := Tb
+    -- now get a map to a via a's pullback property using the map to b
     have map_to_a : ∃! (i : Hom T a) , i ≫ ab = tb ∧ i ≫ ad = Td  := by
       apply lhs_pullback.mediating_morphism
       simp [CommutativeSquare]
@@ -172,9 +182,11 @@ def PBL_outer {C : Type u}{a b c d e f : C} [Category.{v} C]
     obtain ⟨ta, ⟨ta_ab, ta_ad⟩, ta_uniq⟩ := map_to_a
     exists ta
     constructor
+    -- show that ta makes the pullback diagram commute
     · constructor
       · rw [← Category.assoc, ta_ab, tb_bc]
       · exact ta_ad
+    -- show that ta is a unique mediating morphism
     · intro ta' ⟨ta'_abc, ta'_ad⟩
       apply ta_uniq
       constructor
@@ -197,7 +209,7 @@ def PBL_outer {C : Type u}{a b c d e f : C} [Category.{v} C]
 
 If the outer square and the RHS are pullbacks then the LHS is a pullback
 -/
-def PBL_left {C : Type u}{a b c d e f : C} [Category C]
+theorem PBL_left {C : Type u}{a b c d e f : C} [Category C]
   (ab : Hom a b) (bc : Hom b c)
   (ad : Hom a d) (be : Hom b e) (cf : Hom c f)
   (de : Hom d e) (ef : Hom e f)
@@ -209,10 +221,9 @@ def PBL_left {C : Type u}{a b c d e f : C} [Category C]
   refine {commutes := ?_, mediating_morphism := ?_}
   · exact lhs_commutes
   · intro T Tb Td T_commSq
-    have Tb : ∃! (i : Hom T b) , i ≫ bc = Tb ≫ bc ∧ i ≫ be = Td ≫ de  := by
+    have Tb_med : ∃! (i : Hom T b) , i ≫ bc = Tb ≫ bc ∧ i ≫ be = Td ≫ de  := by
       apply rhs_pullback.mediating_morphism
       simp [CommutativeSquare]
-      -- need to show: Tb ≫ bc ≫ cf = Td ≫ de ≫ ef
       have eq_1 : Tb ≫ bc ≫ cf = Tb ≫ be ≫ ef := by
         rw [rhs_pullback.commutes]
       have eq_2 : Tb ≫ be ≫ ef = Td ≫ de ≫ ef := by
@@ -221,18 +232,29 @@ def PBL_left {C : Type u}{a b c d e f : C} [Category C]
       trans Tb ≫ be ≫ ef
       · exact eq_1
       · exact eq_2
-    have map_to_a : ∃! (i : Hom T a) , i ≫ ab ≫ bc = Tb.fst ≫ bc ∧ i ≫ ad = Td  := by
+    obtain ⟨tb, ⟨tb_bc, tb_be⟩, tb_uniq⟩ := Tb_med
+
+    have Tb_eq_tb : Tb = tb := tb_uniq Tb ⟨rfl, T_commSq⟩
+    subst Tb_eq_tb
+
+    have map_to_a : ∃! (i : Hom T a) , i ≫ ab ≫ bc = Tb ≫ bc ∧ i ≫ ad = Td  := by
       apply outer_pullback.mediating_morphism
       simp [CommutativeSquare]
-    have Ta : ∃! (i : Hom T a), i ≫ ab = Tb.fst ∧ i ≫ ad = Td  := by
-      cases map_to_a with
-      | intro i P =>
-        exists i
-        constructor
-        · simp
-        · intro Ta'
-          simp
-    exact Ta
+      rw [rhs_pullback.commutes, ← Category.assoc, tb_be, Category.assoc]
+    obtain ⟨ta, ⟨ta_abc, ta_ad⟩, ta_uniq⟩ := map_to_a
+    exists ta
+    constructor
+    · constructor
+      · -- ta ≫ ab = Tb (by uniqueness from rhs pullback)
+        exact tb_uniq (ta ≫ ab)
+          ⟨by rw [Category.assoc]; exact ta_abc,
+           by rw [Category.assoc, lhs_commutes, ← Category.assoc, ta_ad]⟩
+      · exact ta_ad
+    · intro ta' ⟨ta'_ab, ta'_ad⟩
+      apply ta_uniq
+      constructor
+      · rw [← Category.assoc, ta'_ab]
+      · exact ta'_ad
 
 
 /--
@@ -242,7 +264,7 @@ def PBL_left {C : Type u}{a b c d e f : C} [Category C]
 
 If bd is a mono then ac is a mono
 -/
-def mono_pullback {C : Type u}{a b c d : C} [Category C]
+theorem mono_pullback {C : Type u}{a b c d : C} [Category C]
   {ab : Hom a b} {ac : Hom a c}
   {bd : Hom b d} {cd : Hom c d}
   (is_pullback : IsPullback cd bd a ab ac)

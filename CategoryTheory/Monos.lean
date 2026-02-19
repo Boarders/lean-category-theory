@@ -84,7 +84,7 @@ def Sub_Hom {C : Type u} [Category C] [HasPullbacks C]
   {c d : C} (f : Hom c d) : Sub d → Sub c :=
   Quotient.lift
     (fun m : Monos d => by
-      obtain ⟨j_src, ⟨jc, jd⟩, j_pullback⟩ := HasPullbacks.mkPullback f m.morphism
+      obtain ⟨j_src, jc, jd, j_pullback⟩ := HasPullbacks.mkPullback f m.morphism
       exact Quotient.mk (equivMonos c) ⟨j_src, jd, mono_pullback j_pullback m.is_mono⟩)
         (by
           intro m₁ m₂ eq_m₁m₂
@@ -148,7 +148,7 @@ def Sub_Hom {C : Type u} [Category C] [HasPullbacks C]
 
 Any morphism f : b → c forms a pullback along 𝟙 c
 -/
-def id_pullback {C : Type u} [Category C] {b c : C} (f : Hom b c) :
+theorem id_pullback {C : Type u} [Category C] {b c : C} (f : Hom b c) :
   IsPullback (𝟙 c) f b (𝟙 b) f := by
   refine {commutes := ?_, mediating_morphism := ?_}
   · simp [CommutativeSquare]
@@ -242,7 +242,7 @@ theorem Sub_Hom_comp {C : Type u} [Category C] [HasPullbacks C]
     simp [Sub_Hom]
     exact Quotient.sound (pullback_comp_equiv f g i)
 
-def Sub_Functor {C : Type u} [Category.{v + 1} C] [HasPullbacks C]
+def Sub_Functor {C : Type u} [Category C] [HasPullbacks C]
   : ContravariantFunctor C (Type (max u v)) := by
   refine {F₀ := ?_, F₁ := ?_, F_id := ?_, F_comp := ?_}
   · exact Sub
