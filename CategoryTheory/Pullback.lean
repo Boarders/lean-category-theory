@@ -25,30 +25,30 @@ When we say a category has all pullbacks, we mean that there is some specific ch
 for each collection of morphisms. This is needed to define `Sub` as a functor
 without using choice.
 -/
-def HasPullbacks (C : Type u)[Category C] :=
-  ∀ {b c d : C} (cd : Hom c d) (bd : Hom b d),
+class HasPullbacks (C : Type u)[Category C] where
+  mkPullback : ∀ {b c d : C} (cd : Hom c d) (bd : Hom b d),
     Σ (a : C) , Σ (abac : Hom a b × Hom a c),
       IsPullback cd bd a abac.fst abac.snd
 
-def pullback_obj {C : Type u}[Category C] (hp : HasPullbacks C)
+def pullback_obj {C : Type u}[Category C] [hp : HasPullbacks C]
   {b c d : C} (cd : Hom c d) (bd : Hom b d) : C :=
-  (hp cd bd).fst
+  (hp.mkPullback cd bd).fst
 
-def pullback_top {C : Type u}[Category C] (hp : HasPullbacks C)
+def pullback_top {C : Type u}[Category C] [hp : HasPullbacks C]
   {b c d : C} (cd : Hom c d) (bd : Hom b d) :
-  Hom (pullback_obj hp cd bd) b :=
-  (hp cd bd).snd.fst.fst
+  Hom (pullback_obj cd bd) b :=
+  (hp.mkPullback cd bd).snd.fst.fst
 
-def pullback_left {C : Type u}[Category C] (hp : HasPullbacks C)
+def pullback_left {C : Type u}[Category C] [hp : HasPullbacks C]
   {b c d : C} (cd : Hom c d) (bd : Hom b d) :
-  Hom (pullback_obj hp cd bd) c :=
-  (hp cd bd).snd.fst.snd
+  Hom (pullback_obj cd bd) c :=
+  (hp.mkPullback cd bd).snd.fst.snd
 
-def pullback_proof {C : Type u}[Category C] (hp : HasPullbacks C)
+def pullback_proof {C : Type u}[Category C] [hp : HasPullbacks C]
   {b c d : C} (cd : Hom c d) (bd : Hom b d) :
-  IsPullback cd bd (pullback_obj hp cd bd)
-    (pullback_top hp cd bd) (pullback_left hp cd bd) :=
-  (hp cd bd).snd.snd
+  IsPullback cd bd (pullback_obj cd bd)
+    (pullback_top cd bd) (pullback_left cd bd) :=
+  (hp.mkPullback cd bd).snd.snd
 
 theorem PullbackEndo {C : Type u}[Category.{v} C] (p : C) (a b c : C)
   (pa : Hom p a) (pb : Hom p b)
@@ -131,24 +131,6 @@ theorem PullbackUnique {C : Type u}[Category.{v} C] (p p' : C) (a b c : C)
       rw [Category.id_comp, Category.id_comp]
       aesop
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /--
        T
        ├───────────┐
@@ -159,7 +141,7 @@ theorem PullbackUnique {C : Type u}[Category.{v} C] (p p' : C) (a b c : C)
 
 If the LHS and the RHS are pullbacks then the overall square is a pullback
 -/
-def PBL_outer {C : Type u}{a b c d e f : C} [Category C]
+def PBL_outer {C : Type u}{a b c d e f : C} [Category.{v} C]
   (ab : Hom a b) (bc : Hom b c)
   (ad : Hom a d) (be : Hom b e) (cf : Hom c f)
   (de : Hom d e) (ef : Hom e f)
@@ -182,18 +164,27 @@ def PBL_outer {C : Type u}{a b c d e f : C} [Category C]
       apply rhs_pullback.mediating_morphism
       simp [CommutativeSquare]
       rw [T_commSq]
-    have map_to_a : ∃! (i : Hom T a) , i ≫ ab = Tb.fst ∧ i ≫ ad = Td  := by
+    obtain ⟨tb, ⟨tb_bc, tb_be⟩, tb_uniq⟩ := Tb
+    have map_to_a : ∃! (i : Hom T a) , i ≫ ab = tb ∧ i ≫ ad = Td  := by
       apply lhs_pullback.mediating_morphism
       simp [CommutativeSquare]
-    have Ta : ∃! i, i ≫ ab ≫ bc = Tc ∧ i ≫ ad = Td  := by
-      cases map_to_a with
-      | intro i P =>
-        exists i
+      exact tb_be
+    obtain ⟨ta, ⟨ta_ab, ta_ad⟩, ta_uniq⟩ := map_to_a
+    exists ta
+    constructor
+    · constructor
+      · rw [← Category.assoc, ta_ab, tb_bc]
+      · exact ta_ad
+    · intro ta' ⟨ta'_abc, ta'_ad⟩
+      apply ta_uniq
+      constructor
+      · -- ta' ≫ ab = tb
+        apply tb_uniq
         constructor
-        · simp
-        · intro Ta'
-          simp
-    exact Ta
+        · rw [Category.assoc]
+          exact ta'_abc
+        · rw [Category.assoc, lhs_pullback.commutes, ← Category.assoc, ta'_ad]
+      · exact ta'_ad
 
 
 /--
