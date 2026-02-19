@@ -27,7 +27,7 @@ A quiver is a directed graph, providing the basic structure of objects and morph
 -/
 
 /-- A quiver is just a type with a Hom relation between objects -/
-class Quiver (obj : Type u) : Type max u (v + 1) where
+class Quiver (obj : Type u) : Type max u v where
   /-- The type of morphisms from one object to another -/
   Hom : obj → obj → Sort v
 
@@ -42,7 +42,7 @@ infixr:50 " ⇒ " => Hom
 A Deductive system is a quiver with identity morphisms and composition.
 -/
 
-class DeductiveSystem (obj : Type u) : Type max u (v + 1) extends Quiver.{v} obj where
+class DeductiveSystem (obj : Type u) : Type max u v extends Quiver.{v} obj where
   /-- The identity morphism on an object -/
   id : ∀ X : obj, Hom X X
   /-- Composition of morphisms in a category, written `f ≫ g` -/
@@ -66,7 +66,7 @@ The typeclass `Category C` describes morphisms associated to objects of type `C`
 The universe levels of the objects and morphisms are unconstrained, and will often need
  to be specified explicitly, as `Category.{v} C`.
 -/
-class Category (obj : Type u) : Type max u (v + 1) extends DeductiveSystem.{v} obj where
+class Category (obj : Type u) : Type max u v extends DeductiveSystem.{v} obj where
   /-- left identity for composition -/
   id_comp : ∀ {X Y : obj} (f : Hom X Y), 𝟙 X ≫ f = f
   /-- right identity for composition -/
