@@ -1,5 +1,5 @@
 import CategoryTheory.Category
-import CategoryTheory.Functor
+import CategoryTheory.Covariant.Functor
 
 universe u₁ u₂ v₁ v₂ u v
 
@@ -66,7 +66,7 @@ instance (C : Type u₁)(D : Type u₂) [Category C] [Category D] : Category (C 
     intro P1 P2 P3 P4 f g h
     simp [comp]
 
-def Proj₁ (C : Type u₁)(D : Type u₂) [Category C] [Category D] : Functor (C × D) C
+def Proj₁ (C : Type u₁)(D : Type u₂) [Category C] [Category D] : Covariant.Functor (C × D) C
   := by
   refine {F₀ := ?_, F₁ := ?_, F_id := ?_, F_comp := ?_}
   · exact fun p => p.fst
@@ -77,7 +77,7 @@ def Proj₁ (C : Type u₁)(D : Type u₂) [Category C] [Category D] : Functor (
   · intro P1 P2 P3 f g
     simp [comp]
 
-def Proj₂ (C : Type u₁)(D : Type u₂) [Category C] [Category D] : Functor (C × D) D
+def Proj₂ (C : Type u₁)(D : Type u₂) [Category C] [Category D] : Covariant.Functor (C × D) D
   := by
   refine {F₀ := ?_, F₁ := ?_, F_id := ?_, F_comp := ?_}
   · exact fun p => p.snd

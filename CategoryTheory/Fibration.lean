@@ -1,5 +1,5 @@
 import CategoryTheory.Category
-import CategoryTheory.Functor
+import CategoryTheory.Covariant.Functor
 import CategoryTheory.Commutative
 import CategoryTheory.Morphisms
 
@@ -10,7 +10,7 @@ namespace Cat
 open Quiver
 
 
-structure IsCartesian {E : Type u₁}{B : Type u₂}[Category.{v₁} E][Category.{v₂} B] {e₁ e₂ : E} (F : Functor E B) (top : Hom e₁ e₂) : Type (max u₁ u₂ v₁ v₂) where
+structure IsCartesian {E : Type u₁}{B : Type u₂}[Category.{v₁} E][Category.{v₂} B] {e₁ e₂ : E} (F : Covariant.Functor E B) (top : Hom e₁ e₂) : Type (max u₁ u₂ v₁ v₂) where
     morphism :
       ∀ {a : E} {u : Hom (F.F₀ a) (F.F₀ e₁)} (h : Hom a e₂),
        u ≫ F.F₁ top  = F.F₁ h →  Hom a e₁

@@ -12,6 +12,8 @@ structure QuiverHom (Q₁ : Type u₁) [Quiver.{v₁} Q₁] (Q₂ : Type u₂) [
   F₀ : Q₁ → Q₂
   F₁ : ∀ {q₁ q₂ : Q₁}, Hom q₁ q₂ → Hom (F₀ q₁) (F₀ q₂)
 
+namespace Covariant
+
 structure Functor (C : Type u₁) [Category C] (D : Type u₂) [Category D]
     extends QuiverHom C D where
   F_id : ∀ {c : C}, F₁ (id c) = (DeductiveSystem.id (F₀ c))
@@ -89,3 +91,6 @@ def Comp_Functor {C D E : Type u} [Category C] [Category D] [Category E] (F : Fu
       intro c d e f g
       simp [Comp_Hom, F.F_comp, G.F_comp]
   }
+
+end Covariant
+end Cat

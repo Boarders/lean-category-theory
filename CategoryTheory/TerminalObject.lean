@@ -1,5 +1,4 @@
 import CategoryTheory.Category
-import CategoryTheory.Functor
 import CategoryTheory.Morphisms
 
 universe u₁ u₂ v₁ v₂ u v
@@ -10,6 +9,28 @@ open Quiver
 structure IsTerminal {C : Type u}[Category.{v} C] (term : C) : Type (max v u) where
   to_term : ∀ (c : C) , Hom c term
   uniq_term : ∀ {c : C} (f : Hom c term) , to_term c = f
+
+structure TerminalData (C : Type u)[Category.{v} C] : Type (max v u) where
+  object : C
+  to_term : ∀ (c : C) , Hom c object
+  uniq_term : ∀ {c : C} (f : Hom c object) , to_term c = f
+
+class HasTerminalObject (C : Type u)[S : Category C] where
+  get_terminal : TerminalData C
+
+abbrev terminal_object  (C : Type u)[S : Category C] [HasTerminalObject C] : C :=
+  HasTerminalObject.get_terminal.object
+
+abbrev terminal_map  {C : Type u}[S : Category C] [HasTerminalObject C] (c : C) : Hom c (terminal_object C) :=
+  HasTerminalObject.get_terminal.to_term c
+
+instance : HasTerminalObject (Type u) where
+  get_terminal := by
+    refine {object := ?_, to_term := ?_, uniq_term := ?_}
+    · exact ULift Unit
+    · exact fun _C _c => ULift.up ()
+    · intro c f
+      rfl
 
 /-- Notation for the terminal object -/
 notation "!" => IsTerminal.to_term

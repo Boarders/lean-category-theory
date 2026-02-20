@@ -3,8 +3,15 @@ import CategoryTheory.CAT
 import CategoryTheory.Commutative
 import CategoryTheory.Constructions
 import CategoryTheory.FreeCategory
-import CategoryTheory.Functor
-import CategoryTheory.HomFunctor
+import CategoryTheory.Covariant.Functor
+import CategoryTheory.Covariant.HomFunctor
+import CategoryTheory.Covariant.NaturalTransformation
+import CategoryTheory.Covariant.NaturalIsomorphism
+import CategoryTheory.Contravariant.Functor
+import CategoryTheory.Contravariant.HomFunctor
+import CategoryTheory.Contravariant.NaturalTransformation
+import CategoryTheory.Contravariant.NaturalIsomorphism
+import CategoryTheory.Contravariant.Representable
 import CategoryTheory.InitialObject
 import CategoryTheory.Monoid
 import CategoryTheory.Monos

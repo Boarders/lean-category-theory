@@ -2,7 +2,7 @@ import Mathlib.Algebra.Group.Basic
 import Mathlib.Algebra.Group.Hom.Defs
 import Mathlib.Algebra.Group.Hom.Defs
 import CategoryTheory.Category
-import CategoryTheory.Functor
+import CategoryTheory.Covariant.Functor
 
 universe v u
 namespace Cat
@@ -60,7 +60,7 @@ instance {Q : Type u} [Quiver Q] : Category (FreeCat Q) where
   assoc := comp_assoc
 
 open QuiverHom
-open Functor
+open Covariant.Functor
 
 def fold_path {Q : Type u₁} [Quiver.{v₁} Q] {D : Type u₂} [Category.{v₂} D]
     (M : QuiverHom Q D) {q₁ q₂ : Q} : Path q₁ q₂ → Hom (M.F₀ q₁) (M.F₀ q₂)
@@ -78,7 +78,7 @@ theorem fold_path_functoriality  {Q : Type u₁} [Quiver.{v₁} Q] {D : Type u�
       rw [IH]
 
 
-def fold_free_cat {Q : Type u₁} [Quiver.{v₁} Q] {D : Type u₂} [Category.{v₂} D] (M : QuiverHom Q D) : Functor (FreeCat Q) D := by
+def fold_free_cat {Q : Type u₁} [Quiver.{v₁} Q] {D : Type u₂} [Category.{v₂} D] (M : QuiverHom Q D) : Covariant.Functor (FreeCat Q) D := by
   refine {F₀ := ?_, F₁ := ?_, F_id := ?_, F_comp := ?_ }
   · intro q
     exact M.F₀ q.obj

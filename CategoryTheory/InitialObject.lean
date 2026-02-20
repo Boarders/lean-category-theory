@@ -1,5 +1,4 @@
 import CategoryTheory.Category
-import CategoryTheory.Functor
 import CategoryTheory.Morphisms
 
 universe u₁ u₂ v₁ v₂ u v

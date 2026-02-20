@@ -1,5 +1,5 @@
 import CategoryTheory.Category
-import CategoryTheory.ContravariantFunctor
+import CategoryTheory.Contravariant.Functor
 import CategoryTheory.Morphisms
 import CategoryTheory.Pullback
 import Mathlib.Data.Quot
@@ -34,7 +34,7 @@ theorem IsPart_trans {C : Type u} [Category C] {a b c T : C}
   · rw [assoc]
     rw [j_factors, i_factors]
 
-def IsEquiv {C : Type u} [Category C] {a a' b : C}(f : Hom a b) (g : Hom a' b) :=
+abbrev IsEquiv {C : Type u} [Category C] {a a' b : C}(f : Hom a b) (g : Hom a' b) :=
   IsPart f g ∧ IsPart g f
 
 theorem IsEquiv_refl {C : Type u} [Category C] {a T : C}
@@ -243,7 +243,7 @@ theorem Sub_Hom_comp {C : Type u} [Category C] [HasPullbacks C]
     exact Quotient.sound (pullback_comp_equiv f g i)
 
 def Sub_Functor {C : Type u} [Category C] [HasPullbacks C]
-  : ContravariantFunctor C (Type (max u v)) := by
+  : Contravariant.Functor C (Type (max u v)) := by
   refine {F₀ := ?_, F₁ := ?_, F_id := ?_, F_comp := ?_}
   · exact Sub
   · intro c d f
