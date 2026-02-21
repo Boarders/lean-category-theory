@@ -16,6 +16,7 @@ import CategoryTheory.InitialObject
 import CategoryTheory.Monoid
 import CategoryTheory.Monos
 import CategoryTheory.Morphisms
+import CategoryTheory.Product
 import CategoryTheory.Pullback
 import CategoryTheory.TerminalObject
 import CategoryTheory.SubobjectClassifier
