@@ -13,12 +13,16 @@ open DeductiveSystem
        ↓   ↓
        c → d
 -/
-structure IsPullback {C : Type u}[Category.{v} C] {b c d : C} (bottom : Hom c d) (right : Hom b d) (obj : C) (top : Hom obj b) (left : Hom obj c) : Prop where
+structure IsPullback {C : Type u}[Category.{v} C] {b c d : C} (bottom : Hom c d) (right : Hom b d) (obj : C) (top : Hom obj b) (left : Hom obj c) where
   commutes : CommutativeSquare top right left bottom
   mediating_morphism : ∀ {a : C}
     (top' : Hom a b) (left' : Hom a c)
     (_commutes' : CommutativeSquare top' right left' bottom),
-    ∃! (i : Hom a obj) , i ≫ top = top' ∧ i ≫ left = left'
+    {i : Hom a obj // i ≫ top = top' ∧ i ≫ left = left'}
+  unique : ∀ {a : C} (top' : Hom a b) (left' : Hom a c)
+    (commutes' : CommutativeSquare top' right left' bottom)
+    (j : Hom a obj), j ≫ top = top' → j ≫ left = left' →
+    j = (mediating_morphism top' left' commutes').val
 
 structure PullbackData {C : Type u} [Category C] {b c d : C}
     (cd : Hom c d) (bd : Hom b d) where
@@ -29,8 +33,7 @@ structure PullbackData {C : Type u} [Category C] {b c d : C}
 
 /--
 When we say a category has all pullbacks, we mean that there is some specific choice
-for each collection of morphisms. This is needed to define `Sub` as a functor
-without using choice.
+of pullback for each appropriate diagram.
 -/
 class HasPullbacks (C : Type u)[Category C] where
   mkPullback : ∀ {b c d : C} (cd : Hom c d) (bd : Hom b d),
@@ -63,18 +66,18 @@ theorem PullbackEndo {C : Type u}[Category.{v} C] (p : C) (a b c : C)
   (i : Hom p p)
   (i_pa : i ≫ pa = pa)
   (i_pb : i ≫ pb = pb) : i = 𝟙 p := by
-  -- take any mediating morphism for pb and pa
-  obtain ⟨j , ⟨j_pb, j_pa⟩, j_uniq⟩ :=
-    is_pullback.mediating_morphism pb pa is_pullback.commutes
+  let med := is_pullback.mediating_morphism pb pa is_pullback.commutes
   -- show i mediates
-  have i_mediates : i = j := by
-    apply j_uniq
-    aesop
+  have i_mediates : i = med.val := by
+    apply is_pullback.unique pb pa is_pullback.commutes
+    · exact i_pb
+    · exact i_pa
   -- show id mediates
-  have id_mediates : (𝟙 p) = j := by
-    apply j_uniq
-    aesop
-  trans j
+  have id_mediates : (𝟙 p) = med.val := by
+    apply is_pullback.unique pb pa is_pullback.commutes
+    · simp [Category.id_comp]
+    · simp [Category.id_comp]
+  trans med.val
   · exact i_mediates
   · symm
     exact id_mediates
@@ -97,45 +100,37 @@ theorem PullbackUnique {C : Type u}[Category.{v} C] (p p' : C) (a b c : C)
   (is_pullback : IsPullback ac bc p pb pa)
   (is_pullback' : IsPullback ac bc p' pb' pa') :
   ∃ (f : Hom p' p), IsIso' f := by
-  have p_mediating : ∃! (i : Hom p' p) , i ≫ pb = pb' ∧ i ≫ pa = pa' := by
-    apply is_pullback.mediating_morphism
-    exact is_pullback'.commutes
-  have p'_mediating : ∃! (i : Hom p p') , i ≫ pb' = pb ∧ i ≫ pa' = pa := by
-    apply is_pullback'.mediating_morphism
-    exact is_pullback.commutes
-  have pp_mediating : ∃! (i : Hom p p) , i ≫ pb = pb ∧ i ≫ pa = pa := by
-    apply is_pullback.mediating_morphism
-    exact is_pullback.commutes
-  have p'p'_mediating : ∃! (i : Hom p' p') , i ≫ pb' = pb' ∧ i ≫ pa' = pa' := by
-    apply is_pullback'.mediating_morphism
-    exact is_pullback'.commutes
-  obtain ⟨f , ⟨f_pb, f_pa⟩, _f_uniq⟩ := p_mediating
-  obtain ⟨g , ⟨g_pb, g_pa⟩, _g_uniq⟩ := p'_mediating
-  obtain ⟨i , ⟨_i_pb, _i_pa⟩, i_uniq⟩ := pp_mediating
-  obtain ⟨i' , ⟨_i'_pb, _i'_pa⟩, i'_uniq⟩ := p'p'_mediating
+  let f_med := is_pullback.mediating_morphism pb' pa' is_pullback'.commutes
+  let g_med := is_pullback'.mediating_morphism pb pa is_pullback.commutes
+  let f := f_med.val
+  let g := g_med.val
+  have f_pb := f_med.property.left
+  have f_pa := f_med.property.right
+  have g_pb := g_med.property.left
+  have g_pa := g_med.property.right
   exists f
   simp [IsIso']
   exists g
   -- prove g is a two sided inverse
   constructor
-  · trans i
-    · apply i_uniq
-      rw [Category.assoc, Category.assoc]
-      rw [f_pb, g_pb, f_pa, g_pa]
-      aesop
+  · let pp_med := is_pullback.mediating_morphism pb pa is_pullback.commutes
+    trans pp_med.val
+    · apply is_pullback.unique pb pa is_pullback.commutes
+      · rw [Category.assoc, f_pb, g_pb]
+      · rw [Category.assoc, f_pa, g_pa]
     · symm
-      apply i_uniq
-      rw [Category.id_comp, Category.id_comp]
-      aesop
-  · trans i'
-    · apply i'_uniq
-      rw [Category.assoc, Category.assoc]
-      rw [g_pb, f_pb, g_pa, f_pa]
-      aesop
+      apply is_pullback.unique pb pa is_pullback.commutes
+      · rw [Category.id_comp]
+      · rw [Category.id_comp]
+  · let p'p'_med := is_pullback'.mediating_morphism pb' pa' is_pullback'.commutes
+    trans p'p'_med.val
+    · apply is_pullback'.unique pb' pa' is_pullback'.commutes
+      · rw [Category.assoc, g_pb, f_pb]
+      · rw [Category.assoc, g_pa, f_pa]
     · symm
-      apply i'_uniq
-      rw [Category.id_comp, Category.id_comp]
-      aesop
+      apply is_pullback'.unique pb' pa' is_pullback'.commutes
+      · rw [Category.id_comp]
+      · rw [Category.id_comp]
 
 /--
        T
@@ -147,14 +142,14 @@ theorem PullbackUnique {C : Type u}[Category.{v} C] (p p' : C) (a b c : C)
 
 If the LHS and the RHS are pullbacks then the overall square is a pullback
 -/
-theorem PBL_outer {C : Type u}{a b c d e f : C} [Category C]
+def PBL_outer {C : Type u}{a b c d e f : C} [Category C]
   (ab : Hom a b) (bc : Hom b c)
   (ad : Hom a d) (be : Hom b e) (cf : Hom c f)
   (de : Hom d e) (ef : Hom e f)
   (rhs_pullback : IsPullback ef cf b bc be)
   (lhs_pullback : IsPullback de be a ab ad) :
   IsPullback (de ≫ ef) cf a (ab ≫ bc) ad := by
-  refine {commutes := ?_, mediating_morphism := ?_}
+  refine {commutes := ?_, mediating_morphism := ?_, unique := ?_}
   · simp [CommutativeSquare]
     -- need to show: ab ≫ bc ≫ cf = ad ≫ de ≫ ef
     have eq_1 : ab ≫ bc ≫ cf = ab ≫ be ≫ ef := by
@@ -165,38 +160,38 @@ theorem PBL_outer {C : Type u}{a b c d e f : C} [Category C]
     trans (ab ≫ be ≫ ef)
     · exact eq_1
     · exact eq_2
-    -- need to show: Given a commutative square, there is a unique map to a
-    -- that mediates it
   · intro T Tc Td T_commSq
-    -- first gt a map to b via b's pullback property
-    have Tb : ∃! (i : Hom T b) , i ≫ bc = Tc ∧ i ≫ be = Td ≫ de  := by
-      apply rhs_pullback.mediating_morphism
-      simp [CommutativeSquare]
-      rw [T_commSq]
-    obtain ⟨tb, ⟨tb_bc, tb_be⟩, tb_uniq⟩ := Tb
+    -- first get a map to b via b's pullback property
+    have rhs_comm : CommutativeSquare Tc cf (Td ≫ de) ef := by
+      simp [CommutativeSquare] at T_commSq ⊢
+      exact T_commSq
+    let tb_med := rhs_pullback.mediating_morphism Tc (Td ≫ de) rhs_comm
+    let tb := tb_med.val
+    have tb_bc := tb_med.property.left
+    have tb_be := tb_med.property.right
     -- now get a map to a via a's pullback property using the map to b
-    have map_to_a : ∃! (i : Hom T a) , i ≫ ab = tb ∧ i ≫ ad = Td  := by
-      apply lhs_pullback.mediating_morphism
+    have lhs_comm : CommutativeSquare tb be Td de := by
       simp [CommutativeSquare]
       exact tb_be
-    obtain ⟨ta, ⟨ta_ab, ta_ad⟩, ta_uniq⟩ := map_to_a
-    exists ta
-    constructor
-    -- show that ta makes the pullback diagram commute
-    · constructor
-      · rw [← Category.assoc, ta_ab, tb_bc]
-      · exact ta_ad
-    -- show that ta is a unique mediating morphism
-    · intro ta' ⟨ta'_abc, ta'_ad⟩
-      apply ta_uniq
-      constructor
-      · -- ta' ≫ ab = tb
-        apply tb_uniq
-        constructor
-        · rw [Category.assoc]
-          exact ta'_abc
-        · rw [Category.assoc, lhs_pullback.commutes, ← Category.assoc, ta'_ad]
-      · exact ta'_ad
+    let ta_med := lhs_pullback.mediating_morphism tb Td lhs_comm
+    exact ⟨ta_med.val, ⟨by rw [← Category.assoc, ta_med.property.left, tb_bc],
+                         ta_med.property.right⟩⟩
+  · intro T Tc Td T_commSq ta' ta'_abc ta'_ad
+    have rhs_comm : CommutativeSquare Tc cf (Td ≫ de) ef := by
+      simp [CommutativeSquare] at T_commSq ⊢
+      exact T_commSq
+    let tb_med := rhs_pullback.mediating_morphism Tc (Td ≫ de) rhs_comm
+    let tb := tb_med.val
+    have tb_be := tb_med.property.right
+    have lhs_comm : CommutativeSquare tb be Td de := by
+      simp [CommutativeSquare]
+      exact tb_be
+    apply lhs_pullback.unique tb Td lhs_comm
+    · -- ta' ≫ ab = tb
+      apply rhs_pullback.unique Tc (Td ≫ de) rhs_comm
+      · rw [Category.assoc]; exact ta'_abc
+      · rw [Category.assoc, lhs_pullback.commutes, ← Category.assoc, ta'_ad]
+    · exact ta'_ad
 
 
 /--
@@ -209,7 +204,7 @@ theorem PBL_outer {C : Type u}{a b c d e f : C} [Category C]
 
 If the outer square and the RHS are pullbacks then the LHS is a pullback
 -/
-theorem PBL_left {C : Type u}{a b c d e f : C} [Category C]
+def PBL_left {C : Type u}{a b c d e f : C} [Category C]
   (ab : Hom a b) (bc : Hom b c)
   (ad : Hom a d) (be : Hom b e) (cf : Hom c f)
   (de : Hom d e) (ef : Hom e f)
@@ -218,43 +213,36 @@ theorem PBL_left {C : Type u}{a b c d e f : C} [Category C]
   (lhs_commutes : CommutativeSquare ab be ad de)
   :
   IsPullback de be a ab ad := by
-  refine {commutes := ?_, mediating_morphism := ?_}
+  refine {commutes := ?_, mediating_morphism := ?_, unique := ?_}
   · exact lhs_commutes
   · intro T Tb Td T_commSq
-    have Tb_med : ∃! (i : Hom T b) , i ≫ bc = Tb ≫ bc ∧ i ≫ be = Td ≫ de  := by
-      apply rhs_pullback.mediating_morphism
+    have rhs_comm : CommutativeSquare (Tb ≫ bc) cf (Td ≫ de) ef := by
       simp [CommutativeSquare]
-      have eq_1 : Tb ≫ bc ≫ cf = Tb ≫ be ≫ ef := by
-        rw [rhs_pullback.commutes]
-      have eq_2 : Tb ≫ be ≫ ef = Td ≫ de ≫ ef := by
-        rw [<- Category.assoc, <- Category.assoc]
-        rw [T_commSq]
-      trans Tb ≫ be ≫ ef
-      · exact eq_1
-      · exact eq_2
-    obtain ⟨tb, ⟨tb_bc, tb_be⟩, tb_uniq⟩ := Tb_med
+      rw [rhs_pullback.commutes, ← Category.assoc, T_commSq, Category.assoc]
+    let tb_med := rhs_pullback.mediating_morphism (Tb ≫ bc) (Td ≫ de) rhs_comm
+    have tb_be := tb_med.property.right
 
-    have Tb_eq_tb : Tb = tb := tb_uniq Tb ⟨rfl, T_commSq⟩
-    subst Tb_eq_tb
+    have Tb_eq_tb : Tb = tb_med.val :=
+      rhs_pullback.unique (Tb ≫ bc) (Td ≫ de) rhs_comm Tb rfl T_commSq
 
-    have map_to_a : ∃! (i : Hom T a) , i ≫ ab ≫ bc = Tb ≫ bc ∧ i ≫ ad = Td  := by
-      apply outer_pullback.mediating_morphism
-      simp [CommutativeSquare]
-      rw [rhs_pullback.commutes, ← Category.assoc, tb_be, Category.assoc]
-    obtain ⟨ta, ⟨ta_abc, ta_ad⟩, ta_uniq⟩ := map_to_a
-    exists ta
-    constructor
-    · constructor
-      · -- ta ≫ ab = Tb (by uniqueness from rhs pullback)
-        exact tb_uniq (ta ≫ ab)
-          ⟨by rw [Category.assoc]; exact ta_abc,
-           by rw [Category.assoc, lhs_commutes, ← Category.assoc, ta_ad]⟩
-      · exact ta_ad
-    · intro ta' ⟨ta'_ab, ta'_ad⟩
-      apply ta_uniq
-      constructor
-      · rw [← Category.assoc, ta'_ab]
-      · exact ta'_ad
+    let ta_med := outer_pullback.mediating_morphism (Tb ≫ bc) Td
+      (by simp [CommutativeSquare] at rhs_comm ⊢; exact rhs_comm)
+    have ta_abc := ta_med.property.left
+    have ta_ad := ta_med.property.right
+
+    exact ⟨ta_med.val,
+      ⟨by trans tb_med.val
+          · apply rhs_pullback.unique (Tb ≫ bc) (Td ≫ de) rhs_comm
+            · rw [Category.assoc]; exact ta_abc
+            · rw [Category.assoc, lhs_commutes, ← Category.assoc, ta_ad]
+          · exact Tb_eq_tb.symm,
+       ta_ad⟩⟩
+  · intro T Tb Td T_commSq ta' ta'_ab ta'_ad
+    apply outer_pullback.unique (Tb ≫ bc) Td
+      (by simp [CommutativeSquare]
+          rw [rhs_pullback.commutes, ← Category.assoc, T_commSq, Category.assoc])
+    · rw [← Category.assoc, ta'_ab]
+    · exact ta'_ad
 
 
 /--
@@ -280,25 +268,19 @@ theorem mono_pullback {C : Type u}{a b c d : C} [Category C]
       apply bd_mono.post_cancel
       rw [Category.assoc, Category.assoc]
       exact eq₁
-    have uniq_ea : ∃! (i : Hom e a), i ≫ ab = ea ≫ ab ∧ i ≫ ac = ea ≫ ac  := by
-      apply is_pullback.mediating_morphism
-      · simp [CommutativeSquare]
-        rw [is_pullback.commutes]
-    have eq₃ : ea ≫ ac = ea' ≫ ac := by
-      exact eq_post
-    obtain ⟨witness_ea, ⟨witness_ab, witness_ac⟩, unique_ea⟩ := uniq_ea
-    have ab_eq_uniq : ea = witness_ea := by
-      apply unique_ea
-      -- prove that ea is also mediating
-      constructor
+    have eq₃ : ea ≫ ac = ea' ≫ ac := eq_post
+    have ea_comm : CommutativeSquare (ea ≫ ab) bd (ea ≫ ac) cd := by
+      simp [CommutativeSquare]
+      rw [is_pullback.commutes]
+    let med := is_pullback.mediating_morphism (ea ≫ ab) (ea ≫ ac) ea_comm
+    have ab_eq_uniq : ea = med.val := by
+      apply is_pullback.unique (ea ≫ ab) (ea ≫ ac) ea_comm
       · rfl
       · rfl
-    have ab'_eq_uniq : ea' = witness_ea := by
-      apply unique_ea
-      -- prove that ea' is also mediating
-      constructor
-      · rw [eq₂]
-      · rw [eq₃]
-    trans witness_ea
+    have ab'_eq_uniq : ea' = med.val := by
+      apply is_pullback.unique (ea ≫ ab) (ea ≫ ac) ea_comm
+      · exact eq₂.symm
+      · exact eq₃.symm
+    trans med.val
     · exact ab_eq_uniq
     · rw [ab'_eq_uniq]
