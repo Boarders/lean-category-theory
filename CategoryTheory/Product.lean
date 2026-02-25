@@ -1,7 +1,6 @@
 import CategoryTheory.Category
 import CategoryTheory.Commutative
 import CategoryTheory.Morphisms
-import Mathlib.Logic.ExistsUnique
 
 universe u₁ u₂ v₁ v₂ u v
 
