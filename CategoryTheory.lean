@@ -2,6 +2,9 @@ import CategoryTheory.Category
 import CategoryTheory.CAT
 import CategoryTheory.Commutative
 import CategoryTheory.Constructions
+import CategoryTheory.Equalizer
+import CategoryTheory.Exponential
+import CategoryTheory.FiniteLimits
 import CategoryTheory.FreeCategory
 import CategoryTheory.Covariant.Functor
 import CategoryTheory.Covariant.HomFunctor
