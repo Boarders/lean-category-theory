@@ -97,7 +97,7 @@ theorem equiv_to_subtype
        d → ↑Prop
       p_fiber i
 -/
-theorem fiber_pullback
+noncomputable def fiber_pullback
   {X Y : Type u}
   (i : X → Y) (i_mono : IsSetMono i) :
   IsPullback
@@ -106,7 +106,7 @@ theorem fiber_pullback
     X
     (terminal_map X)
     i  := by
-  refine {commutes := ?_, mediating_morphism := ?_}
+  refine {commutes := ?_, mediating_morphism := ?_, unique := ?_}
   · simp [CommutativeSquare, DeductiveSystem.comp, p_fiber]
   · intro T top' left' comm
     simp [CommutativeSquare, DeductiveSystem.comp, p_fiber] at comm
@@ -116,27 +116,27 @@ theorem fiber_pullback
       have eq := congr_arg ULift.down (congr_fun comm t)
       simp at eq
       exact eq
-    -- mediatig map
-    exists (fun t => Classical.choose (left'_in_fib t))
+    -- mediating map
+    exact ⟨fun t => Classical.choose (left'_in_fib t), ⟨
+      by apply HasTerminalObject.get_terminal.uniq_term top',
+      by funext t; simp [DeductiveSystem.comp]; apply Classical.choose_spec (left'_in_fib t)⟩⟩
+  · intro T top' left' comm tx top_eq left_eq
+    simp [CommutativeSquare, DeductiveSystem.comp, p_fiber] at comm
+    have left'_in_fib : ∀ t, ∃ x, i x = left' t := by
+      intro t
+      have eq := congr_arg ULift.down (congr_fun comm t)
+      simp at eq
+      exact eq
+    -- Use that i is a mono to show the mediating map is unique
+    apply i_mono.post_cancel
     simp [DeductiveSystem.comp]
-    -- first need to show that this a mediating map
-    constructor
-    constructor
-    · apply HasTerminalObject.get_terminal.uniq_term top'
-    · funext t
-      apply Classical.choose_spec (left'_in_fib t)
-    · intro tx  top_eq left_eq
-      -- Note: Here we need to use that i is a mono
-      -- since we show the mediating map is unique
-      -- by post-composing with i
-      apply i_mono.post_cancel
-      simp [DeductiveSystem.comp]
-      rw [left_eq]
-      funext t
-      rw [Classical.choose_spec (left'_in_fib t)]
+    funext t
+    have h₁ : i (tx t) = left' t := congr_fun left_eq t
+    have h₂ : i (Classical.choose (left'_in_fib t)) = left' t := Classical.choose_spec (left'_in_fib t)
+    rw [h₁, h₂]
 
 
-instance : HasSubobjectClassifier (Type u) where
+noncomputable instance : HasSubobjectClassifier (Type u) where
   get_Subobject_Classifier := by
     refine {Ω := ?_, true := ?_, ch := ?_, pullback := ?_, unique := ?_}
     · exact ULift Prop
@@ -155,7 +155,7 @@ instance : HasSubobjectClassifier (Type u) where
       exact fiber_pullback i i_mono
     · intro C D i ch' i_mono ch'_pullback
       cases ch'_pullback with
-      | mk commutes mediating =>
+      | mk commutes mediating uniq =>
       simp [CommutativeSquare, DeductiveSystem.comp] at commutes
       funext d
       ext
@@ -164,23 +164,19 @@ instance : HasSubobjectClassifier (Type u) where
         intro x ix_d
         rw [<- ix_d, <- (congr_fun commutes x)]
         simp
-      -- idea:
       · simp [p_fiber]
         intro ch'_d
-      -- we have ch' d for some d : D and want to show that means that
-      -- we can find an element in the fiber of i that maps to it
         have ch'_d_true : (ch' d).down = True := by
           apply propext
           constructor
           · simp
           · intro _
             exact ch'_d
-        let mediate_ele : ∃! (j : (ULift Unit) -> C), j ≫ terminal_map C = (terminal_map (ULift Unit)) ∧ j ≫ i = (fun _ => d) := by
-          apply mediating
-          · simp [CommutativeSquare, terminal_map]
-            funext _
-            rw [<- ch'_d_true]
-            rfl
-        obtain ⟨x , ⟨_, ix⟩, uniq⟩ := mediate_ele
-        exists (x (ULift.up ()))
-        apply congr_fun ix
+        have med_comm : CommutativeSquare (terminal_map (ULift Unit)) (fun _ => ULift.up True) (fun _ => d) ch' := by
+          simp [CommutativeSquare, terminal_map]
+          funext _
+          rw [<- ch'_d_true]
+          rfl
+        let med := mediating (terminal_map (ULift Unit)) (fun _ => d) med_comm
+        exists (med.val (ULift.up ()))
+        apply congr_fun med.property.right

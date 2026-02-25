@@ -120,22 +120,16 @@ def Sub_Hom {C : Type u} [Category C] [HasPullbacks C]
                  simp [CommutativeSquare]
                  rw [i₂_is_part]
                  apply j₂_pullback.commutes
-               have j₁_mediate :
-                 ∃! (i : Hom j₁_src j₂_src) , i ≫ j₂b₂ = (j₁b₁ ≫ i₁i₂) ∧ i ≫ j₂c = j₁c := by
-                 apply j₂_pullback.mediating_morphism (j₁b₁ ≫ i₁i₂) j₁c j₁comm
-               have j₂_mediate :
-                 ∃! (i : Hom j₂_src j₁_src) , i ≫ j₁b₁ = (j₂b₂ ≫ i₂i₁) ∧ i ≫ j₁c = j₂c := by
-                 apply j₁_pullback.mediating_morphism (j₂b₂ ≫ i₂i₁) j₂c j₂comm
-               obtain ⟨j₁j₂ , ⟨j₁_j₂b₂, j₁_j₂c⟩, j₁_uniq⟩ := j₁_mediate
-               obtain ⟨j₂j₁ , ⟨j₂_j₁b₁, j₂_j₁c⟩, j₂_uniq⟩ := j₂_mediate
+               let j₁_med := j₂_pullback.mediating_morphism (j₁b₁ ≫ i₁i₂) j₁c j₁comm
+               let j₂_med := j₁_pullback.mediating_morphism (j₂b₂ ≫ i₂i₁) j₂c j₂comm
                simp [IsEquiv]
                constructor
                · refine {factors := ?_}
                  change ∃ i, i ≫ j₂c = j₁c
-                 exact ⟨j₁j₂, j₁_j₂c⟩
+                 exact ⟨j₁_med.val, j₁_med.property.right⟩
                · refine {factors := ?_}
                  change ∃ i, i ≫ j₁c = j₂c
-                 exact ⟨j₂j₁, j₂_j₁c⟩
+                 exact ⟨j₂_med.val, j₂_med.property.right⟩
              exact Quotient.sound equiv
         )
 
@@ -148,15 +142,16 @@ def Sub_Hom {C : Type u} [Category C] [HasPullbacks C]
 
 Any morphism f : b → c forms a pullback along 𝟙 c
 -/
-theorem id_pullback {C : Type u} [Category C] {b c : C} (f : Hom b c) :
+def id_pullback {C : Type u} [Category C] {b c : C} (f : Hom b c) :
   IsPullback (𝟙 c) f b (𝟙 b) f := by
-  refine {commutes := ?_, mediating_morphism := ?_}
+  refine {commutes := ?_, mediating_morphism := ?_, unique := ?_}
   · simp [CommutativeSquare]
   · intro a top left comm
     simp [CommutativeSquare] at comm
-    exists top
-    simp
-    exact comm
+    exact ⟨top, ⟨by simp [Category.comp_id], comm⟩⟩
+  · intro a top left comm j j_top j_left
+    simp at j_top
+    exact j_top
 
 theorem pullback_id_equiv {C : Type u} [Category C] [HasPullbacks C]
   {b c : C} (f : Hom b c) :
@@ -175,9 +170,8 @@ theorem pullback_id_equiv {C : Type u} [Category C] [HasPullbacks C]
   -- Direction 2: IsPart f (pullback_left (𝟙 c) f)
   -- Use the mediating morphism from the universal property
   · refine {factors := ?_}
-    have med := (pullback_proof (𝟙 c) f).mediating_morphism (𝟙 b) f (id_pullback f).commutes
-    obtain ⟨i, ⟨_, _⟩, _⟩ := med
-    exists i
+    let med := (pullback_proof (𝟙 c) f).mediating_morphism (𝟙 b) f (id_pullback f).commutes
+    exact ⟨med.val, med.property.right⟩
 
 /--
 Given:
@@ -207,20 +201,18 @@ theorem pullback_comp_equiv {C : Type u} [Category C] [HasPullbacks C]
   refine ⟨?_, ?_⟩
   -- WTS: IsPart (pullback_left (g ≫ h) f) (pullback_left g (pullback_left h f))
   · refine {factors := ?_}
-    have med := comp_pb.mediating_morphism
+    let med := comp_pb.mediating_morphism
       (pullback_top (g ≫ h) f)
       (pullback_left (g ≫ h) f)
       direct_pb.commutes
-    obtain ⟨i, ⟨_, i_left⟩, _⟩ := med
-    exact ⟨i, i_left⟩
+    exact ⟨med.val, med.property.right⟩
   -- WTS : IsPart (pullback_left g (pullback_left h f)) (pullback_left (g ≫ h) f)
   · refine {factors := ?_}
-    have med := direct_pb.mediating_morphism
+    let med := direct_pb.mediating_morphism
       (pullback_top g (pullback_left h f) ≫ pullback_top h f)
       (pullback_left g (pullback_left h f))
       comp_pb.commutes
-    obtain ⟨i, ⟨_, i_left⟩, _⟩ := med
-    exact ⟨i, i_left⟩
+    exact ⟨med.val, med.property.right⟩
 
 theorem Sub_Hom_id {C : Type u} [Category C] [HasPullbacks C]
   {c : C} : Sub_Hom (𝟙 c) = id := by
