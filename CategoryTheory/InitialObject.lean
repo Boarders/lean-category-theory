@@ -11,8 +11,8 @@ structure IsInitial {C : Type u}[Category.{v} C] (init : C) : Type (max v u) whe
   uniq_init : ∀ {c : C} (f : Hom init c) , from_init c = f
 
 /-- Notation for the initial object -/
-notation "!" => IsInitial.from_init
-notation "!-uniq" => IsInitial.uniq_init
+notation "!0" => IsInitial.from_init
+notation "!0-uniq" => IsInitial.uniq_init
 
 lemma init_endo_id [Category.{v} C] {init : C}
   {f g : Hom init init} (is_init : IsInitial init) :
@@ -40,5 +40,5 @@ def InitialUnique {C : Type u}[Category.{v} C] (init₁ init₂ : C)
     · intro g
       -- Show that:
       --   g = i₁_i₂
-      -- by showing both are equal to ![i₁]
+      -- by showing both are equal to !0[i₁]
       rw [<- is_init₁.uniq_init g, <- is_init₁.uniq_init i₁_i₂]
