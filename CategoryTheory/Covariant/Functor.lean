@@ -12,8 +12,19 @@ structure QuiverHom (Q₁ : Type u₁) [Quiver.{v₁} Q₁] (Q₂ : Type u₂) [
   F₀ : Q₁ → Q₂
   F₁ : ∀ {q₁ q₂ : Q₁}, Hom q₁ q₂ → Hom (F₀ q₁) (F₀ q₂)
 
-abbrev Diagram (I : Type u₁) [Quiver.{v₁} I] (C : Type u₂) [Category.{v₂} C] :=
-  QuiverHom I C
+@[ext]
+theorem QuiverHom.ext {C : Type u₁} {D : Type u₂} [Quiver C][Quiver D] {F G : QuiverHom C D}
+      (h₀ : F.F₀ = G.F₀)
+      (h₁ : @HEq (∀ {c₁ c₂ : C}, Hom c₁ c₂ → Hom (F.F₀ c₁) (F.F₀ c₂))
+                  F.F₁
+                  (∀ {c₁ c₂ : C}, Hom c₁ c₂ → Hom (G.F₀ c₁) (G.F₀ c₂))
+                  G.F₁)
+      : F = G := by
+  cases F with
+  | mk qhF =>
+    cases G with
+    | mk qhG =>
+      congr
 
 namespace Covariant
 
@@ -30,7 +41,7 @@ structure Functor (C : Type u₁) [Category C] (D : Type u₂) [Category D]
 -- They are the same if have an equality of the functor on morphisms,
 -- but we don't know this when passing this arg to ext
 @[ext]
-theorem Functor.ext {C D : Type u} [Category C][Category D] {F G : Functor C D}
+theorem Functor.ext {C : Type u₁} {D : Type u₂} [Category C][Category D] {F G : Functor C D}
       (h₀ : F.F₀ = G.F₀)
       (h₁ : @HEq (∀ {c₁ c₂ : C}, Hom c₁ c₂ → Hom (F.F₀ c₁) (F.F₀ c₂))
                   F.F₁
@@ -96,4 +107,8 @@ def Comp_Functor {C D E : Type u} [Category C] [Category D] [Category E] (F : Fu
   }
 
 end Covariant
+
+abbrev Diagram (I : Type u₁) [Category.{v₁} I] (C : Type u₂) [Category.{v₂} C] :=
+  Covariant.Functor I C
+
 end Cat
