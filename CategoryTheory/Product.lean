@@ -1,18 +1,74 @@
 import CategoryTheory.Category
 import CategoryTheory.Commutative
 import CategoryTheory.Morphisms
+import CategoryTheory.Covariant.Functor
+import CategoryTheory.Limit
+import Mathlib.Logic.Equiv.Defs
+import Mathlib.Data.Finite.Defs
+import Mathlib.Tactic.FinCases
+import Mathlib.Data.Fintype.Fin
 
 universe u₁ u₂ v₁ v₂ u v
 
 namespace Cat
 open Quiver
 open DeductiveSystem
+open Covariant
 
 /--
        a → b
        ↓
        c
 -/
+
+abbrev ProductDiagram := Disc (Fin 2)
+def product_hom {C : Type u} [Category C] : (Functor ProductDiagram C) ≃ C × C := by
+  refine {toFun := ?_, invFun :=?_, right_inv := ?_, left_inv := ?_}
+  · intro F
+    simp [ProductDiagram] at F
+    exact ⟨F.F₀ {el := 0}, F.F₀ {el := 1}⟩
+  · intro pr_C
+    rcases pr_C with ⟨c₀, c₁⟩
+    refine {F₀ := ?_, F₁ := ?_, F_id := ?_, F_comp := ?_}
+    · intro ⟨i⟩
+      match i with
+      | 0 => exact c₀
+      | 1 => exact c₁
+    · intro n m eq
+      subst eq
+      exact DeductiveSystem.id _
+    · intro ⟨i⟩
+      match i with
+      | 0 => rfl
+      | 1 => rfl
+    · intro i j k eq₁ eq₂
+      subst eq₁
+      subst eq₂
+      simp
+      rfl
+  · intro ⟨⟨F₀, F₁⟩, F_id, F_comp⟩
+    simp
+    have h₀ : ∀ (n : ProductDiagram),
+      (match n.el with | (0 : Fin 2) => F₀ ⟨0⟩ | 1 => F₀ ⟨1⟩) = F₀ n := by
+      intro ⟨i⟩; match i with | 0 => rfl | 1 => rfl
+    simp [h₀]
+    congr! with n n' hnn m m' hmm eq eq' heq
+    subst hnn; subst hmm
+    have : eq = eq' := Subsingleton.elim _ _
+    subst this
+    subst eq
+    exact (congr_arg_heq DeductiveSystem.id (h₀ n)).trans (heq_of_eq F_id.symm)
+  · intro ⟨c₀, c₁⟩
+    rfl
+
+
+
+
+
+
+
+
+
 structure IsProduct {C : Type u}[Category.{v} C] {a b c : C} (proj₁ : Hom a b) (proj₂ : Hom a c) where
   mediating_morphism : ∀ {a' : C}
     (proj₁' : Hom a' b) (proj₂' : Hom a' c),
