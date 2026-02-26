@@ -8,20 +8,24 @@ universe u₁ u₂ v₁ v₂ u v i j
 namespace Cat
 open Quiver
 open DeductiveSystem
+open Covariant
 
-structure Cone {I : Type i} [Quiver I] {C : Type u} [Category C] (F : QuiverHom I C) where
+structure Cone {I : Type i} [Category I] {C : Type u} [Category C] (F : Functor I C) where
   obj : C
   C₀ : ∀ (i : I), Hom obj (F.F₀ i)
   commutes : ∀ (i j : I), (f : Hom i j) → C₀ i ≫ F.F₁ f = C₀ j
 
-structure UniversalCone {I : Type i}  [Quiver I] {C : Type u} [Category C] (F : QuiverHom I C) extends Cone F where
+structure UniversalCone {I : Type i}  [Category I] {C : Type u} [Category C] (F : Functor I C) extends Cone F where
   mediating : ∀ (cone' : Cone F) ,
     {u : Hom cone'.obj obj // ∀ (i : I) , cone'.C₀ i = u ≫ C₀ i}
   univ : ∀ (cone' : Cone F)
     (u' : Hom cone'.obj obj), (∀ (i : I) , cone'.C₀ i = u' ≫ C₀ i) →
        u' = (mediating cone').val
 
-def mediating_endo {I : Type i} [Quiver I] {C : Type u}[Category C] (F : QuiverHom I C)
+class HasShapeLimits (I : Type i) [Category I] (C : Type u) [Category C] where
+  mkLimit : ∀ (F : Functor I C), UniversalCone F
+
+def mediating_endo {I : Type i} [Category I] {C : Type u}[Category C] (F : Functor I C)
   (UC : UniversalCone F) (f : Hom UC.obj UC.obj) :
   (∀ (i : I), UC.C₀ i = f ≫ UC.C₀ i) → (𝟙 UC.obj) = f := by
   intro f_mediates
@@ -38,7 +42,7 @@ def mediating_endo {I : Type i} [Quiver I] {C : Type u}[Category C] (F : QuiverH
   · exact mediate_eq_f
 
 
-def limits_unique {I : Type i} [Quiver I] {C : Type u}[Category C] (F : QuiverHom I C)
+def limits_unique {I : Type i} [Category I] {C : Type u}[Category C] (F : Functor I C)
   (UC UC' : UniversalCone F) :
   Unique { m : Hom UC.obj UC'.obj // IsIso' m ∧ ∀ (i : I),
     UC.C₀ i = m ≫ UC'.C₀ i } := by
