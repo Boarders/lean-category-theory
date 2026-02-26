@@ -12,6 +12,9 @@ structure QuiverHom (Q₁ : Type u₁) [Quiver.{v₁} Q₁] (Q₂ : Type u₂) [
   F₀ : Q₁ → Q₂
   F₁ : ∀ {q₁ q₂ : Q₁}, Hom q₁ q₂ → Hom (F₀ q₁) (F₀ q₂)
 
+abbrev Diagram (I : Type u₁) [Quiver.{v₁} I] (C : Type u₂) [Category.{v₂} C] :=
+  QuiverHom I C
+
 namespace Covariant
 
 structure Functor (C : Type u₁) [Category C] (D : Type u₂) [Category D]
