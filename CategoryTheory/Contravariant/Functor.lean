@@ -13,6 +13,20 @@ structure QuiverHomOp (Q₁ : Type u₁) [Quiver.{v₁} Q₁] (Q₂ : Type u₂)
   F₀ : Q₁ → Q₂
   F₁ : ∀ {q₁ q₂ : Q₁}, Hom q₁ q₂ → Hom (F₀ q₂) (F₀ q₁)
 
+@[ext]
+theorem QuiverHomOp.ext {C D : Type u} [Quiver C][Quiver D] {F G : QuiverHom C D}
+      (h₀ : F.F₀ = G.F₀)
+      (h₁ : @HEq (∀ {c₁ c₂ : C}, Hom c₁ c₂ → Hom (F.F₀ c₁) (F.F₀ c₂))
+                  F.F₁
+                  (∀ {c₁ c₂ : C}, Hom c₁ c₂ → Hom (G.F₀ c₁) (G.F₀ c₂))
+                  G.F₁)
+      : F = G := by
+  cases F with
+  | mk qhF =>
+    cases G with
+    | mk qhG =>
+      congr
+
 namespace Contravariant
 
 structure Functor (C : Type u₁) [Category C] (D : Type u₂) [Category D]
