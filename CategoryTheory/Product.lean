@@ -25,7 +25,6 @@ abbrev ProductDiagram := Disc (Fin 2)
 def product_hom {C : Type u} [Category C] : (Functor ProductDiagram C) ≃ C × C := by
   refine {toFun := ?_, invFun :=?_, right_inv := ?_, left_inv := ?_}
   · intro F
-    simp [ProductDiagram] at F
     exact ⟨F.F₀ {el := 0}, F.F₀ {el := 1}⟩
   · intro pr_C
     rcases pr_C with ⟨c₀, c₁⟩
@@ -57,7 +56,13 @@ def product_hom {C : Type u} [Category C] : (Functor ProductDiagram C) ≃ C × 
     have : eq = eq' := Subsingleton.elim _ _
     subst this
     subst eq
-    exact (congr_arg_heq DeductiveSystem.id (h₀ n)).trans (heq_of_eq F_id.symm)
+    -- need to show HEq between the identity at on the match function evaluted at name
+    -- and F₁ 𝟙
+    --   - First the match statement using h₀ to be 𝟙 (F₀ n)
+    --   - Then we can use that F preserves identity
+    apply HEq.trans (congr_arg_heq DeductiveSystem.id (h₀ n))
+    apply heq_of_eq
+    exact F_id.symm
   · intro ⟨c₀, c₁⟩
     rfl
 
