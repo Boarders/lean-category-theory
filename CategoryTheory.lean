@@ -16,6 +16,7 @@ import CategoryTheory.Contravariant.NaturalTransformation
 import CategoryTheory.Contravariant.NaturalIsomorphism
 import CategoryTheory.Contravariant.Representable
 import CategoryTheory.InitialObject
+import CategoryTheory.Limit
 import CategoryTheory.Monoid
 import CategoryTheory.Monos
 import CategoryTheory.Morphisms
