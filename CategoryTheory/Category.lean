@@ -2,6 +2,8 @@ import Mathlib.Algebra.Group.Defs
 import Mathlib.Algebra.Group.Basic
 import Mathlib.Order.Basic
 import Mathlib.Algebra.Group.Hom.Defs
+import Mathlib.Data.Finite.Defs
+import Mathlib.Data.Fin.Basic
 /-!
 # Categories
 
@@ -30,6 +32,10 @@ A quiver is a directed graph, providing the basic structure of objects and morph
 class Quiver (obj : Type u) : Type max u v where
   /-- The type of morphisms from one object to another -/
   Hom : obj → obj → Sort v
+
+class FiniteQuiver (obj : Type u) extends Quiver.{v} obj where
+  finite_objects : Finite obj
+  finite_morphisms : ∀ (v w : obj), Finite (Hom v w)
 
 open Cat.Quiver
 
@@ -349,5 +355,17 @@ instance (X : Type u) : Category (Disc X) where
   assoc := by
     intros p q r s e1 e2 e3
     rfl
+
+instance {n : ℕ} : Quiver (Fin n) where
+  Hom n m := n ≤ m
+
+instance {n : ℕ} : DeductiveSystem (Fin n) where
+  id _ := Nat.le_refl _
+  comp h₁ h₂ := Nat.le_trans h₁ h₂
+
+instance {n : ℕ} : Category (Fin n) where
+  id_comp _r := by rfl
+  comp_id _r := by rfl
+  assoc _f _g _h := by rfl
 
 end Cat
