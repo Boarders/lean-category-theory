@@ -37,6 +37,7 @@ instance CATCategory : Category CAT where
     simp [DeductiveSystem.comp, Covariant.Comp_Functor]
     apply Covariant.Functor.ext
     simp [DeductiveSystem.id, Covariant.Comp_Hom, Covariant.Id_Functor, Covariant.Id_Hom]
+    apply heq_of_eq
     simp [Covariant.Comp_Hom]
     funext c₁ c₂
     simp [DeductiveSystem.id, Covariant.Id_Functor, Covariant.Id_Hom]
@@ -46,6 +47,7 @@ instance CATCategory : Category CAT where
     simp [DeductiveSystem.comp, Covariant.Comp_Functor]
     apply Covariant.Functor.ext
     simp [DeductiveSystem.id, Covariant.Comp_Hom, Covariant.Id_Functor, Covariant.Id_Hom]
+    apply heq_of_eq
     simp [Covariant.Comp_Hom]
     funext c₁ c₂
     simp [DeductiveSystem.id, Covariant.Id_Functor, Covariant.Id_Hom]
@@ -56,7 +58,8 @@ instance CATCategory : Category CAT where
     apply Covariant.Functor.ext
     simp [Covariant.Comp_Hom]
     · rfl
-    · simp [Covariant.Comp_Hom]
+    · apply heq_of_eq
+      simp [Covariant.Comp_Hom]
       funext c₁ c₂
       rfl
 
