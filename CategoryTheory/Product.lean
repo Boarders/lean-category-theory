@@ -52,6 +52,7 @@ def product_hom {C : Type u} [Category C] : (Functor ProductDiagram C) ≃ C × 
       (match n.el with | (0 : Fin 2) => F₀ ⟨0⟩ | 1 => F₀ ⟨1⟩) = F₀ n := by
       intro ⟨i⟩; match i with | 0 => rfl | 1 => rfl
     simp [h₀]
+    -- now need to prove HEq to show equality of morphisms
     congr! with n n' hnn m m' hmm eq eq' heq
     subst hnn; subst hmm
     have : eq = eq' := Subsingleton.elim _ _
