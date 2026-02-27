@@ -47,6 +47,7 @@ def product_hom {C : Type u} [Category C] : (Functor ProductDiagram C) ≃ C × 
       rfl
   · intro ⟨⟨F₀, F₁⟩, F_id, F_comp⟩
     simp
+    -- proof that it is left inverse on objects
     have h₀ : ∀ (n : ProductDiagram),
       (match n.el with | (0 : Fin 2) => F₀ ⟨0⟩ | 1 => F₀ ⟨1⟩) = F₀ n := by
       intro ⟨i⟩; match i with | 0 => rfl | 1 => rfl
