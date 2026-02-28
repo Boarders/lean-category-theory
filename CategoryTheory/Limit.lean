@@ -3,7 +3,7 @@ import CategoryTheory.Commutative
 import CategoryTheory.Morphisms
 import CategoryTheory.Covariant.Functor
 
-universe u₁ u₂ v₁ v₂ u v i j
+universe u₁ u₂ v₁ v₂ u v i j w
 
 namespace Cat
 open Quiver
@@ -22,8 +22,11 @@ structure UniversalCone {I : Type i}  [Category I] {C : Type u} [Category C] (F 
     (u' : Hom cone'.obj obj), (∀ (i : I) , cone'.C₀ i = u' ≫ C₀ i) →
        u' = (mediating cone').val
 
-class HasShapeLimits (I : Type i) [Category I] (C : Type u) [Category C] where
+class HasLimitsOfDiagram (I : Type i) [Category I] (C : Type u) [Category C] where
   mkLimit : ∀ (F : Functor I C), UniversalCone F
+
+class HasFiniteLimits (C : Type u) [Category.{v} C] where
+  mkLimit : ∀ (I : Type i)[FiniteCategory.{w} I] (F : Functor I C), UniversalCone F
 
 def mediating_endo {I : Type i} [Category I] {C : Type u}[Category C] (F : Functor I C)
   (UC : UniversalCone F) (f : Hom UC.obj UC.obj) :
