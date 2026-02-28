@@ -14,6 +14,7 @@ namespace Cat
 open Quiver
 open DeductiveSystem
 open Covariant
+open UniversalCone
 
 /--
        a → b
@@ -67,13 +68,6 @@ def product_hom {C : Type u} [Category C] : (Functor ProductDiagram C) ≃ C × 
     exact F_id.symm
   · intro ⟨c₀, c₁⟩
     rfl
-
-
-
-
-
-
-
 
 
 structure IsProduct {C : Type u}[Category.{v} C] {a b c : C} (proj₁ : Hom a b) (proj₂ : Hom a c) where
@@ -150,3 +144,102 @@ def product {C : Type u}[Category C] [hp : HasProducts C] {a b c d : C}
 
 /-- Use algebra of programming notation □ for product map -/
 infix:80 " □ " => product
+
+
+/--
+This shows that having general limits of shape |2| = . . (ProductDiagram), means
+a category has products (in the fully unfolded sense)
+-/
+def limits_of_product_diagram_to_product
+ {C : Type u} [Category C] [Lim : HasLimitsOfDiagram ProductDiagram C] : HasProducts C := by
+  refine {mkProduct := ?_}
+  intro c d
+  let associated_functor : Functor ProductDiagram C := product_hom.invFun ⟨c, d⟩
+  have f_0 : associated_functor.F₀ {el := 0} = c := by
+    simp [associated_functor, product_hom]
+  have f_1 : associated_functor.F₀ {el := 1} = d := by
+    simp [associated_functor, product_hom]
+  let mk_cone (T : C) (pr'₁ : T ⇒ c) (pr'₂ : T ⇒ d) : Cone associated_functor := by
+    refine {obj := T, C₀ := ?_, commutes := ?_}
+    · intro ⟨i⟩
+      match i with
+      | 0 => exact pr'₁
+      | 1 => exact pr'₂
+    · intro n m eq
+      subst eq
+      match n with
+      | ⟨0⟩ => simp [associated_functor, product_hom]
+      | ⟨1⟩ => simp [associated_functor, product_hom]
+  let universal_cone : UniversalCone associated_functor := Lim.mkLimit associated_functor
+  let univ₁ := universal_cone.C₀ {el := 0}
+  let univ₂ := universal_cone.C₀ {el := 1}
+  refine {obj := ?_, proj₁ := ?_, proj₂ := ?_, is_product := ?_}
+  · exact universal_cone.obj
+  · exact univ₁
+  · exact univ₂
+  · refine {mediating_morphism := ?_, unique := ?_}
+    -- first show that if we have the universal cone then we get a mediating
+    -- morphism from it
+    · intro T pr'₁ pr'₂
+      let T_cone : Cone associated_functor := mk_cone T pr'₁ pr'₂
+      let T_mediating := universal_cone.mediating T_cone
+      refine {val := ?_, property := ?_}
+      · exact T_mediating.val
+      · let at_0 : pr'₁ = ↑T_mediating ≫ univ₁ := T_mediating.property ⟨0⟩
+        let at_1 : pr'₂ = ↑T_mediating ≫ univ₂ := T_mediating.property ⟨1⟩
+        exact ⟨by symm; exact at_0, by symm; exact at_1⟩
+    -- now use uniqueness of the universal cone to show the mediating morphism is
+    -- unique
+    · intro T pr'₁ pr'₂ mediate' mediate_β₁ mediate_β₂
+      let T_cone : Cone associated_functor := mk_cone T pr'₁ pr'₂
+      have cone_mediate :
+        ∀ (i : ProductDiagram) , T_cone.C₀ i = mediate' ≫ universal_cone.C₀ i := by
+        intro i
+        match i with
+        | ⟨0⟩ =>
+          simp [T_cone, mk_cone]
+          exact mediate_β₁.symm
+        | ⟨1⟩ =>
+          simp [T_cone, mk_cone]
+          exact mediate_β₂.symm
+      apply universal_cone.univ T_cone mediate' cone_mediate
+
+
+
+def product_to_limits_of_diagram
+ {C : Type u} [Category C] [Prod : HasProducts C] : HasLimitsOfDiagram ProductDiagram C := by
+  refine {mkLimit := ?_}
+  intro F
+  let c₀ : C := F.F₀ ⟨0⟩
+  let c₁ : C := F.F₀ ⟨1⟩
+  let prod := Prod.mkProduct c₀ c₁
+  refine {obj := ?_, C₀ := ?_, mediating := ?_, commutes := ?_, univ :=?_}
+  · exact prod.obj
+  · intro i
+    match i with
+    | ⟨0⟩ => exact prod.proj₁
+    | ⟨1⟩ => exact prod.proj₂
+  · intro i j eq
+    subst eq
+    simp
+  · intro cone_F
+    let T : C := cone_F.obj
+    let proj'₁ : Hom T c₀  := cone_F.C₀ ⟨0⟩
+    let proj'₂ : Hom T c₁ := cone_F.C₀ ⟨1⟩
+    let mediates := prod.is_product.mediating_morphism proj'₁ proj'₂
+    refine {val := ?_, property := ?_}
+    · exact mediates.val
+    · intro i
+      match i with
+      | ⟨0⟩ =>
+        rw [mediates.property.left]
+      | ⟨1⟩ =>
+        rw [mediates.property.right]
+  · intro cone_F mediate_map cone_mediates
+    let T : C := cone_F.obj
+    let proj'₁ : Hom T c₀  := cone_F.C₀ ⟨0⟩
+    let proj'₂ : Hom T c₁ := cone_F.C₀ ⟨1⟩
+    let mediates := prod.is_product.mediating_morphism proj'₁ proj'₂
+    apply prod.is_product.unique
+    rw [cone_mediates ⟨0⟩]
+    rw [cone_mediates ⟨1⟩]
