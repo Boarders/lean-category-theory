@@ -106,9 +106,22 @@ def Comp_Functor {C D E : Type u} [Category C] [Category D] [Category E] (F : Fu
       simp [Comp_Hom, F.F_comp, G.F_comp]
   }
 
+
+@[simp]theorem disc_id {C : Type u₁} [Category C] {X : Type u₂} (F : Functor (Disc X) C) {i j : Disc X}(eq : Hom i j) : HEq (F.F₁ eq) (𝟙 (F.F₀ i)) := by
+  induction eq
+  simp [F.F_id]
+
+@[simp] theorem disc_id_rfl {C : Type u₁} [Category C] {X : Type u₂}
+       (F : Functor (Disc X) C) (i : Disc X) :
+     F.F₁ (rfl : i = i) = 𝟙 (F.F₀ i) :=
+     eq_of_heq (disc_id F rfl)
+
 end Covariant
 
 abbrev Diagram (I : Type u₁) [Category.{v₁} I] (C : Type u₂) [Category.{v₂} C] :=
+  Covariant.Functor I C
+
+abbrev FiniteDiagram (I : Type u₁) [Category.{v₁} I] [Finite I] (C : Type u₂) [Category.{v₂} C] :=
   Covariant.Functor I C
 
 end Cat
