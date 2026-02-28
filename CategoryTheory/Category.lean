@@ -4,6 +4,8 @@ import Mathlib.Order.Basic
 import Mathlib.Algebra.Group.Hom.Defs
 import Mathlib.Data.Finite.Defs
 import Mathlib.Data.Fin.Basic
+import Mathlib.Data.Fintype.Basic
+import Mathlib.Data.Fintype.EquivFin
 /-!
 # Categories
 
@@ -80,6 +82,8 @@ class Category (obj : Type u) : Type max u v extends DeductiveSystem.{v} obj whe
   /-- Composition is associative -/
   assoc : ∀ {W X Y Z : obj} (f : W ⇒ X) (g : X ⇒ Y) (h : Y ⇒ Z),
     (f ≫ g) ≫ h = f ≫ (g ≫ h)
+
+class FiniteCategory (obj : Type u) extends Category.{v} obj, FiniteQuiver.{v} obj
 
 attribute [simp] Category.id_comp
 attribute [simp] Category.comp_id
@@ -332,8 +336,17 @@ that x = x depending on the ambient type theory
 structure Disc(X : Type u) : Type u where
   el : X
 
+instance (X : Type u) [Finite X] : Finite (Disc X) :=
+  Finite.of_equiv X ⟨Disc.mk, Disc.el, fun _ => rfl, fun _ => rfl⟩
+
 instance (X : Type u) : Quiver (Disc X) where
   Hom p q := p = q
+
+instance (X : Type u) [Finite X] : FiniteQuiver (Disc X) where
+  finite_objects := inferInstance
+  finite_morphisms v w := by
+    show Finite (v = w)
+    infer_instance
 
 instance (X : Type u) : DeductiveSystem (Disc X) where
   id X := by
