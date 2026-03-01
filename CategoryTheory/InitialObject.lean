@@ -33,6 +33,11 @@ abbrev initial_map {C : Type u} [S : Category C] [HasInitialObject C] (c : C) : 
 
 notation "!ℂ0" => initial_map
 
+abbrev initial_uniq {C : Type u} [S : Category C] [HasInitialObject C] {c : C}(f : Hom ℂ0 c) : !ℂ0 c = f :=
+  HasInitialObject.get_initial.uniq_initial _
+
+notation "!ℂ0_uniq" => initial_uniq
+
 lemma init_endo_id [Category.{v} C] {init : C}
   {f g : Hom init init} (is_init : IsInitial init) :
   f = g := by
@@ -61,3 +66,11 @@ def InitialUnique {C : Type u}[Category.{v} C] (init₁ init₂ : C)
       --   g = i₁_i₂
       -- by showing both are equal to !0[i₁]
       rw [<- is_init₁.uniq_init g, <- is_init₁.uniq_init i₁_i₂]
+
+
+def Hom_init {C : Type u} [Category C] [HasInitialObject C] (c : C) : Unique (Hom ℂ0 c) := by
+  refine {default := ?_, uniq := ?_}
+  · exact !ℂ0 c
+  · intro f
+    symm
+    apply !ℂ0_uniq
