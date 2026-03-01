@@ -11,8 +11,27 @@ structure IsInitial {C : Type u}[Category.{v} C] (init : C) : Type (max v u) whe
   uniq_init : ∀ {c : C} (f : Hom init c) , from_init c = f
 
 /-- Notation for the initial object -/
+
 notation "!0" => IsInitial.from_init
 notation "!0-uniq" => IsInitial.uniq_init
+
+structure InitialData (C : Type u)[Category.{v} C] : Type (max v u) where
+  object : C
+  from_initial : ∀ (c : C) , Hom object c
+  uniq_initial : ∀ {c : C} (f : Hom object c) , from_initial c = f
+
+class HasInitialObject (C : Type u)[S : Category C] where
+  get_initial : InitialData C
+
+abbrev initial_object {C : Type u} [S : Category C] [HasInitialObject C] : C :=
+  HasInitialObject.get_initial.object
+
+notation "ℂ0" => initial_object
+
+abbrev initial_map {C : Type u} [S : Category C] [HasInitialObject C] (c : C) : Hom initial_object c :=
+  HasInitialObject.get_initial.from_initial c
+
+notation "!ℂ0" => initial_map
 
 lemma init_endo_id [Category.{v} C] {init : C}
   {f g : Hom init init} (is_init : IsInitial init) :
