@@ -34,7 +34,7 @@ theorem eta  {C : Type u} [Category C] [HasProducts C] {a b c : C}
   apply Exp.uniq ((f □ (𝟙 a)) ≫ Exp.eval) f
   rfl
 
-def exponentialAdjoint' {C : Type} [Category C] [HasProducts C] {a b c : C} (Exp : Exponential b c) : Hom (a × b) c ≃ Hom a Exp.obj := by
+def exponentialAdjoint' {C : Type u} [Category C] [HasProducts C] {a b c : C} (Exp : Exponential b c) : Hom (a × b) c ≃ Hom a Exp.obj := by
   refine ⟨?_, ?_, ?_, ?_⟩
     -- map from a × b ⇒ c → a ⇒ c^b
   · exact Exp.adj
@@ -61,5 +61,5 @@ def exponential_obj {C : Type u}[Category C] [HasProducts C] [hp : HasExponentia
 
 infixr:60 " ~> " => exponential_obj
 
-def exponentialAdjoint {C : Type} [Category C] [HasProducts C] [Exp : HasExponentials C] {a b c : C} : Hom (a × b) c ≃ Hom a (b ~> c) := by
+def exponentialAdjoint {C : Type u} [Category C] [HasProducts C] [Exp : HasExponentials C] (a b c : C) : Hom (a × b) c ≃ Hom a (b ~> c) := by
   apply exponentialAdjoint' (Exp.mkExponential b c)
