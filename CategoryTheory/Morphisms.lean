@@ -15,6 +15,36 @@ structure IsIso {C : Type u} [Category C] {a b : C} (f : Hom a b) where
 
 open IsIso
 
+def iso_hom
+   {C : Type u} {a b c : C} [Category C] (f : Hom a b) (iso : IsIso f) :
+    Hom a c ≃ Hom b c := by
+  let ⟨inv, pre_inv, post_inv⟩ := iso
+  refine ⟨?_, ?_, ?_, ?_⟩
+  · intro f
+    exact inv ≫ f
+  · intro g
+    exact f ≫ g
+  · intro f
+    simp
+    simp [<- Category.assoc, post_inv, Category.id_comp]
+  · intro g
+    simp [<- Category.assoc, pre_inv]
+
+def hom_iso
+   {C : Type u} {a b c : C} [Category C] (f : Hom a b) (iso : IsIso f) :
+    Hom c a ≃ Hom c b := by
+  let ⟨inv, pre_inv, post_inv⟩ := iso
+  refine ⟨?_, ?_, ?_, ?_⟩
+  · intro h
+    exact h ≫ f
+  · intro g
+    exact g ≫ inv
+  · intro f
+    simp
+    simp [post_inv]
+  · intro g
+    simp [pre_inv]
+
 theorem uniq_inv
    {C : Type u} {a b : C} [Category C] (f : Hom a b) (g₁ g₂ : IsIso f) :
     g₁.inv = g₂.inv
