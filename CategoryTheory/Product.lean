@@ -3,6 +3,7 @@ import CategoryTheory.Commutative
 import CategoryTheory.Morphisms
 import CategoryTheory.Covariant.Functor
 import CategoryTheory.Limit
+import CategoryTheory.TerminalObject
 import Mathlib.Logic.Equiv.Defs
 import Mathlib.Data.Finite.Defs
 import Mathlib.Tactic.FinCases
@@ -119,12 +120,19 @@ def fork {C : Type u}[Category C] [hp : HasProducts C] {x a b : C}
   ((product_proof a b).mediating_morphism f g)
 
 /-- Use algebra of programming notation ▵ for fork map to a product -/
-infix:80 " ▵ " => fork
+infix:90 " ▵ " => fork
 
 theorem fork_β  {C : Type u}[Category C] [hp : HasProducts C] {x a b : C}
   (f : Hom x a) (g : Hom x b) : (f ▵ g) ≫ Pr₁ a b = f ∧ (f ▵ g) ≫ Pr₂ a b = g := by
   simp [fork]
   exact ((product_proof a b).mediating_morphism f g).property
+
+theorem fork_η  {C : Type u}[Category C] [hp : HasProducts C] {x a b : C}
+  (f : Hom x a) (g : Hom x b) (φ : Hom x (a × b)) (φ_proj : φ ≫ Pr₁ a b = f ∧ φ ≫ Pr₂ a b = g) : φ = f ▵ g := by
+  simp [fork]
+  apply (hp.mkProduct a b).is_product.unique
+  . apply φ_proj.left
+  · apply φ_proj.right
 
 @[simp] theorem fork_β₁  {C : Type u}[Category C] [hp : HasProducts C] {x a b : C}
   (f : Hom x a) (g : Hom x b) : (f ▵ g) ≫ Pr₁ a b = f := by
@@ -143,7 +151,7 @@ def product {C : Type u}[Category C] [hp : HasProducts C] {a b c d : C}
   ((product_proof c d).mediating_morphism proj₁' proj₂')
 
 /-- Use algebra of programming notation □ for product map -/
-infix:80 " □ " => product
+infix:90 " □ " => product
 
 
 /--
@@ -243,3 +251,12 @@ def product_to_limits_of_diagram
     apply prod.is_product.unique
     rw [cone_mediates ⟨0⟩]
     rw [cone_mediates ⟨1⟩]
+
+
+def prod_one_iso {C : Type u} [Category C] [Prod : HasProducts C][HasTerminalObject C] (c : C) :
+  Σ (i : Hom (c × ℂ1) c) , IsIso i := by
+  exists Pr₁ _ _
+  refine {inv := ?_, pre_inv := ?_, post_inv := ?_}
+  · exact 𝟙 c ▵ !ℂ1 c
+  · apply fork_β₁
+  ·
