@@ -28,6 +28,11 @@ abbrev terminal_map {C : Type u} [S : Category C] [HasTerminalObject C] (c : C) 
 
 notation "!ℂ1" => terminal_map
 
+abbrev terminal_uniq {C : Type u} [S : Category C] [HasTerminalObject C] {c : C}(f : Hom c ℂ1) : !ℂ1 c = f :=
+  HasTerminalObject.get_terminal.uniq_term _
+
+notation "!ℂ1_uniq" => terminal_uniq
+
 instance : HasTerminalObject (Type u) where
   get_terminal := by
     refine {object := ?_, to_term := ?_, uniq_term := ?_}
