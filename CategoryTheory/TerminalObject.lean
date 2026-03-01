@@ -18,11 +18,15 @@ structure TerminalData (C : Type u)[Category.{v} C] : Type (max v u) where
 class HasTerminalObject (C : Type u)[S : Category C] where
   get_terminal : TerminalData C
 
-abbrev terminal_object  (C : Type u)[S : Category C] [HasTerminalObject C] : C :=
+abbrev terminal_object {C : Type u} [S : Category C] [HasTerminalObject C] : C :=
   HasTerminalObject.get_terminal.object
 
-abbrev terminal_map  {C : Type u}[S : Category C] [HasTerminalObject C] (c : C) : Hom c (terminal_object C) :=
+notation "ℂ1" => terminal_object
+
+abbrev terminal_map {C : Type u} [S : Category C] [HasTerminalObject C] (c : C) : Hom c terminal_object :=
   HasTerminalObject.get_terminal.to_term c
+
+notation "!ℂ1" => terminal_map
 
 instance : HasTerminalObject (Type u) where
   get_terminal := by
