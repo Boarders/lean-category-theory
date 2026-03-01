@@ -259,4 +259,24 @@ def prod_one_iso {C : Type u} [Category C] [Prod : HasProducts C][HasTerminalObj
   refine {inv := ?_, pre_inv := ?_, post_inv := ?_}
   · exact 𝟙 c ▵ !ℂ1 c
   · apply fork_β₁
-  ·
+  · have eq₁ : (Pr₁ c ℂ1 ≫ 𝟙 c ▵ !ℂ1 c) = Pr₁ c ℂ1 ▵ Pr₂ c ℂ1 := by
+      apply fork_η
+      constructor
+      · simp [Category.assoc]
+      · simp [Category.assoc]
+        have eq₁ : Pr₁ c ℂ1 ≫ !ℂ1 c = !ℂ1 _ := by
+          symm
+          apply !ℂ1_uniq
+        have eq₂ : !ℂ1 _ = Pr₂ c ℂ1 := by
+          apply !ℂ1_uniq
+        trans !ℂ1 _
+        · exact eq₁
+        · exact eq₂
+    have eq₂ : 𝟙 (c × ℂ1) = Pr₁ c ℂ1 ▵ Pr₂ c ℂ1 := by
+      apply fork_η
+      constructor
+      · simp
+      · simp
+    trans Pr₁ c ℂ1 ▵ Pr₂ c ℂ1
+    · exact eq₁
+    · symm; exact eq₂
