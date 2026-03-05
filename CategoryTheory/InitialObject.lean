@@ -68,7 +68,7 @@ def InitialUnique {C : Type u}[Category.{v} C] (init₁ init₂ : C)
       rw [<- is_init₁.uniq_init g, <- is_init₁.uniq_init i₁_i₂]
 
 
-def Hom_init {C : Type u} [Category C] [HasInitialObject C] (c : C) : Unique (Hom ℂ0 c) := by
+def Hom_init_Unqiue {C : Type u} [Category C] [HasInitialObject C] (c : C) : Unique (Hom ℂ0 c) := by
   refine {default := ?_, uniq := ?_}
   · exact !ℂ0 c
   · intro f
