@@ -1,5 +1,6 @@
 import CategoryTheory.Category
 import CategoryTheory.CAT
+import CategoryTheory.CartesianClosedCategory
 import CategoryTheory.Commutative
 import CategoryTheory.Constructions
 import CategoryTheory.Equalizer
@@ -24,3 +25,4 @@ import CategoryTheory.Product
 import CategoryTheory.Pullback
 import CategoryTheory.TerminalObject
 import CategoryTheory.SubobjectClassifier
+import CategoryTheory.Topos
