@@ -15,20 +15,26 @@ structure IsIso {C : Type u} [Category C] {a b : C} (f : Hom a b) where
 
 open IsIso
 
+def symm_iso {C : Type u} [Category C] {a b : C} {f : Hom a b} (iso : IsIso f) : IsIso iso.inv where
+  inv := f
+  pre_inv := iso.post_inv
+  post_inv := iso.pre_inv
+
 def iso_hom
    {C : Type u} {a b c : C} [Category C] (f : Hom a b) (iso : IsIso f) :
-    Hom a c ≃ Hom b c := by
+    Hom a c ≃ Hom b c :=
   let ⟨inv, pre_inv, post_inv⟩ := iso
-  refine ⟨?_, ?_, ?_, ?_⟩
-  · intro f
-    exact inv ≫ f
-  · intro g
-    exact f ≫ g
-  · intro f
-    simp
-    simp [<- Category.assoc, post_inv, Category.id_comp]
-  · intro g
-    simp [<- Category.assoc, pre_inv]
+  {
+    toFun := fun h => inv ≫ h
+    invFun := fun g => f ≫ g
+    left_inv := by
+      intro h
+      simp
+      simp [<- Category.assoc, post_inv, Category.id_comp]
+    right_inv := by
+      intro g
+      simp [<- Category.assoc, pre_inv]
+  }
 
 def hom_iso
    {C : Type u} {a b c : C} [Category C] (f : Hom a b) (iso : IsIso f) :
