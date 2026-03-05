@@ -253,30 +253,40 @@ def product_to_limits_of_diagram
     rw [cone_mediates ⟨1⟩]
 
 
+theorem prod_one_post_inv {C : Type u} [Category C] [Prod : HasProducts C][HasTerminalObject C] (c : C) :
+  (Pr₂ ℂ1 c) ≫ (!ℂ1 c ▵ 𝟙 c) = 𝟙 (ℂ1 × c) := by
+  have eq₁ : (Pr₂ ℂ1 c ≫ !ℂ1 c ▵ 𝟙 c) = Pr₁ ℂ1 c ▵ Pr₂ ℂ1 c := by
+    apply fork_η
+    constructor
+    · simp [Category.assoc]
+      have eq₁ : Pr₂ ℂ1 c ≫ !ℂ1 c = !ℂ1 _ := by
+        symm
+        apply !ℂ1_uniq
+      have eq₂ : !ℂ1 _ = Pr₁ ℂ1 c := by
+        apply !ℂ1_uniq
+      trans !ℂ1 _
+      · exact eq₁
+      · exact eq₂
+    · simp [Category.assoc]
+  have eq₂ : 𝟙 (ℂ1 × c) = Pr₁ ℂ1 c ▵ Pr₂ ℂ1 c := by
+    apply fork_η
+    constructor
+    · simp
+    · simp
+  trans Pr₁ ℂ1 c ▵ Pr₂ ℂ1 c
+  · exact eq₁
+  · symm; exact eq₂
+
+def prod_one_iso_proof {C : Type u} [Category C] [Prod : HasProducts C][HasTerminalObject C] (c : C) :
+  IsIso (Pr₂ ℂ1 c) where
+  inv := !ℂ1 c ▵ 𝟙 c
+  pre_inv := fork_β₂ (!ℂ1 c) (𝟙 c)
+  post_inv := prod_one_post_inv c
+
 def prod_one_iso {C : Type u} [Category C] [Prod : HasProducts C][HasTerminalObject C] (c : C) :
-  Σ (i : Hom (c × ℂ1) c) , IsIso i := by
-  exists Pr₁ _ _
-  refine {inv := ?_, pre_inv := ?_, post_inv := ?_}
-  · exact 𝟙 c ▵ !ℂ1 c
-  · apply fork_β₁
-  · have eq₁ : (Pr₁ c ℂ1 ≫ 𝟙 c ▵ !ℂ1 c) = Pr₁ c ℂ1 ▵ Pr₂ c ℂ1 := by
-      apply fork_η
-      constructor
-      · simp [Category.assoc]
-      · simp [Category.assoc]
-        have eq₁ : Pr₁ c ℂ1 ≫ !ℂ1 c = !ℂ1 _ := by
-          symm
-          apply !ℂ1_uniq
-        have eq₂ : !ℂ1 _ = Pr₂ c ℂ1 := by
-          apply !ℂ1_uniq
-        trans !ℂ1 _
-        · exact eq₁
-        · exact eq₂
-    have eq₂ : 𝟙 (c × ℂ1) = Pr₁ c ℂ1 ▵ Pr₂ c ℂ1 := by
-      apply fork_η
-      constructor
-      · simp
-      · simp
-    trans Pr₁ c ℂ1 ▵ Pr₂ c ℂ1
-    · exact eq₁
-    · symm; exact eq₂
+  PSigma (fun (i : Hom (ℂ1 × c) c) => IsIso i) :=
+  ⟨Pr₂ ℂ1 c, prod_one_iso_proof c⟩
+
+def one_prod_iso {C : Type u} [Category C] [Prod : HasProducts C][HasTerminalObject C] (c : C) :
+  PSigma (fun (i : Hom c (ℂ1 × c)) => IsIso i) :=
+  ⟨!ℂ1 c ▵ 𝟙 c, symm_iso (prod_one_iso c).snd⟩
