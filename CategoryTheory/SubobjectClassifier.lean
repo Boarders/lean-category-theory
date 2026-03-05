@@ -16,9 +16,9 @@ open DeductiveSystem
 open Category
 
 
-structure SubobjectClassifier (C : Type i) [Category C] [HasTerminalObject C] where
+structure SubobjectClassifier (C : Type u) [Category C] [HasTerminalObject C] where
   Ω : C
-  true : Hom terminal_object Ω
+  true : Hom ℂ1 Ω
   ch : ∀ {c d} {f : Hom c d} , IsMono f → Hom d Ω
   /--
          !
