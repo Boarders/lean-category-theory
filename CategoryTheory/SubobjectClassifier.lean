@@ -18,7 +18,7 @@ open Category
 
 structure SubobjectClassifier (C : Type i) [Category C] [HasTerminalObject C] where
   Ω : C
-  true : Hom (terminal_object C) Ω
+  true : Hom terminal_object Ω
   ch : ∀ {c d} {f : Hom c d} , IsMono f → Hom d Ω
   /--
          !
