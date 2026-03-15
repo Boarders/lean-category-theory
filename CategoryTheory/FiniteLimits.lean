@@ -12,9 +12,9 @@ namespace Cat
 open Quiver
 open DeductiveSystem
 
-class HasFiniteLimits (c : Type u) extends Category c, HasProducts c, HasEqualizers c
+class HasProductsAndEqualizers (c : Type u) extends Category c, HasProducts c, HasEqualizers c
 
-instance (c : Type u) [Category c][HasProducts c] [HasEqualizers c] : HasFiniteLimits c where
+instance (c : Type u) [Category c][HasProducts c] [HasEqualizers c] : HasProductsAndEqualizers c where
 
 
 /- The pullback:
